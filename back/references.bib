@@ -83,3 +83,115 @@ abstract = {Hyperparameters are important for machine learning algorithms since 
   year={2023},
   publisher={Springer}
 } % GS
+
+@article{frazier2018tutorial,
+  title={A tutorial on Bayesian optimization},
+  author={Frazier, Peter I},
+  journal={arXiv preprint arXiv:1807.02811},
+  year={2018}
+} % GS
+
+@InProceedings{pmlr-v37-snoek15,
+  title = 	 {Scalable Bayesian Optimization Using Deep Neural Networks},
+  author = 	 {Snoek, Jasper and Rippel, Oren and Swersky, Kevin and Kiros, Ryan and Satish, Nadathur and Sundaram, Narayanan and Patwary, Mostofa and Prabhat, Mr and Adams, Ryan},
+  booktitle = 	 {Proceedings of the 32nd International Conference on Machine Learning},
+  pages = 	 {2171--2180},
+  year = 	 {2015},
+  editor = 	 {Bach, Francis and Blei, David},
+  volume = 	 {37},
+  series = 	 {Proceedings of Machine Learning Research},
+  address = 	 {Lille, France},
+  month = 	 {07--09 Jul},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v37/snoek15.pdf},
+  url = 	 {https://proceedings.mlr.press/v37/snoek15.html},
+  abstract = 	 {Bayesian optimization is an effective methodology for the global optimization of functions with expensive evaluations. It relies on querying a distribution over functions defined by a relatively cheap surrogate model. An accurate model for this distribution over functions is critical to the effectiveness of the approach, and is typically fit using Gaussian processes (GPs). However, since GPs scale cubically with the number of observations, it has been challenging to handle objectives whose optimization requires many evaluations, and as such, massively parallelizing the optimization. In this work, we explore the use of neural networks as an alternative to GPs to model distributions over functions. We show that performing adaptive basis function regression with a neural network as the parametric form performs competitively with state-of-the-art GP-based approaches, but scales linearly with the number of data rather than cubically. This allows us to achieve a previously intractable degree of parallelism, which we apply to large scale hyperparameter optimization, rapidly finding competitive models on benchmark object recognition tasks using convolutional networks, and image caption generation using neural language models.}
+}
+
+@inproceedings{NIPS2016_a96d3afe,
+ author = {Springenberg, Jost Tobias and Klein, Aaron and Falkner, Stefan and Hutter, Frank},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {D. Lee and M. Sugiyama and U. Luxburg and I. Guyon and R. Garnett},
+ pages = {},
+ publisher = {Curran Associates, Inc.},
+ title = {Bayesian Optimization with Robust Bayesian Neural Networks},
+ url = {https://proceedings.neurips.cc/paper_files/paper/2016/file/a96d3afec184766bfeca7a9f989fc7e7-Paper.pdf},
+ volume = {29},
+ year = {2016}
+}
+
+@InProceedings{10.1007/978-3-642-25566-3_40,
+author="Hutter, Frank
+and Hoos, Holger H.
+and Leyton-Brown, Kevin",
+editor="Coello, Carlos A. Coello",
+title="Sequential Model-Based Optimization for General Algorithm Configuration",
+booktitle="Learning and Intelligent Optimization",
+year="2011",
+publisher="Springer Berlin Heidelberg",
+address="Berlin, Heidelberg",
+pages="507--523",
+abstract="State-of-the-art algorithms for hard computational problems often expose many parameters that can be modified to improve empirical performance. However, manually exploring the resulting combinatorial space of parameter settings is tedious and tends to lead to unsatisfactory outcomes. Recently, automated approaches for solving this algorithm configuration problem have led to substantial improvements in the state of the art for solving various problems. One promising approach constructs explicit regression models to describe the dependence of target algorithm performance on parameter settings; however, this approach has so far been limited to the optimization of few numerical algorithm parameters on single instances. In this paper, we extend this paradigm for the first time to general algorithm configuration problems, allowing many categorical parameters and optimization for sets of instances. We experimentally validate our new algorithm configuration procedure by optimizing a local search and a tree search solver for the propositional satisfiability problem (SAT), as well as the commercial mixed integer programming (MIP) solver CPLEX. In these experiments, our procedure yielded state-of-the-art performance, and in many cases outperformed the previous best configuration approach.",
+isbn="978-3-642-25566-3"
+}
+
+@article{10.1145/3582078,
+author = {Wang, Xilu and Jin, Yaochu and Schmitt, Sebastian and Olhofer, Markus},
+title = {Recent Advances in Bayesian Optimization},
+year = {2023},
+issue_date = {December 2023},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+volume = {55},
+number = {13s},
+issn = {0360-0300},
+url = {https://doi.org/10.1145/3582078},
+doi = {10.1145/3582078},
+abstract = {Bayesian optimization has emerged at the forefront of expensive black-box optimization due to its data efficiency. Recent years have witnessed a proliferation of studies on the development of new Bayesian optimization algorithms and their applications. Hence, this article attempts to provide a comprehensive and updated survey of recent advances in Bayesian optimization that are mainly based on Gaussian processes and identify challenging open problems. We categorize the existing work on Bayesian optimization into nine main groups according to the motivations and focus of the proposed algorithms. For each category, we present the main advances with respect to the construction of surrogate models and adaptation of the acquisition functions. Finally, we discuss the open questions and suggest promising future research directions, in particular with regard to heterogeneity, privacy preservation, and fairness in distributed and federated optimization systems.},
+journal = {ACM Comput. Surv.},
+month = jul,
+articleno = {287},
+numpages = {36},
+keywords = {Bayesian optimization, Gaussian process, acquisition function}
+}
+
+@article{LI2026114819,
+title = {Bayesian optimization on networks},
+journal = {Journal of Computational Physics},
+volume = {558},
+pages = {114819},
+year = {2026},
+issn = {0021-9991},
+doi = {https://doi.org/10.1016/j.jcp.2026.114819},
+url = {https://www.sciencedirect.com/science/article/pii/S0021999126001695},
+author = {W. Li and D. Sanz-Alonso and R. Yang},
+keywords = {Bayesian optimization, Networks, Metric graphs, Whittle-Matérn processes},
+abstract = {This paper studies optimization on networks modeled as metric graphs. Motivated by applications where the objective function is expensive to evaluate or only available as a black box, we develop Bayesian optimization algorithms that sequentially update a Gaussian process surrogate model of the objective to guide the acquisition of query points. To ensure that the surrogates are tailored to the network’s geometry, we adopt Whittle-Matérn Gaussian process prior models defined via stochastic partial differential equations on metric graphs. In addition to establishing regret bounds for optimizing sufficiently smooth objective functions, we analyze the practical case in which the smoothness of the objective is unknown and the Whittle-Matérn prior is represented using finite elements. Numerical results demonstrate the effectiveness of our algorithms for optimizing benchmark objective functions on a synthetic metric graph and for Bayesian inversion via maximum a posteriori estimation on a telecommunication network.}
+}
+
+@InProceedings{pmlr-v32-snoek14,
+  title = 	 {Input Warping for Bayesian Optimization of Non-Stationary Functions},
+  author = 	 {Snoek, Jasper and Swersky, Kevin and Zemel, Rich and Adams, Ryan},
+  booktitle = 	 {Proceedings of the 31st International Conference on Machine Learning},
+  pages = 	 {1674--1682},
+  year = 	 {2014},
+  editor = 	 {Xing, Eric P. and Jebara, Tony},
+  volume = 	 {32},
+  number =       {2},
+  series = 	 {Proceedings of Machine Learning Research},
+  address = 	 {Beijing, China},
+  month = 	 {22--24 Jun},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v32/snoek14.pdf},
+  url = 	 {https://proceedings.mlr.press/v32/snoek14.html},
+  abstract = 	 {Bayesian optimization has proven to be a highly effective methodology for the global optimization of unknown, expensive and multimodal functions.  The ability to accurately model distributions over functions is critical to the effectiveness of Bayesian optimization.  Although Gaussian processes provide a flexible prior over functions, there are various classes of functions that remain difficult to model.  One of the most frequently occurring of these is the class of non-stationary functions.  The optimization of the hyperparameters of machine learning algorithms is a problem domain in which parameters are often manually transformed a priori, for example by optimizing in "log-space", to mitigate the effects of spatially-varying length scale.  We develop a methodology for automatically learning a wide family of bijective transformations or warpings of the input space using the Beta cumulative distribution function.  We further extend the warping framework to multi-task Bayesian optimization so that multiple tasks can be warped into a jointly stationary space. On a set of challenging benchmark optimization tasks, we observe that the inclusion of warping greatly improves on the state-of-the-art, producing better results faster and more reliably.}
+}
+
+@incollection{rasmussen2003gaussian,
+  title={Gaussian processes in machine learning},
+  author={Rasmussen, Carl Edward},
+  booktitle={Summer school on machine learning},
+  pages={63--71},
+  year={2003},
+  publisher={Springer}
+} %GS

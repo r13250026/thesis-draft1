@@ -1,0 +1,85 @@
+@InProceedings{pmlr-v54-klein17a,
+  title = 	 {{Fast Bayesian Optimization of Machine Learning Hyperparameters on Large Datasets}},
+  author = 	 {Klein, Aaron and Falkner, Stefan and Bartels, Simon and Hennig, Philipp and Hutter, Frank},
+  booktitle = 	 {Proceedings of the 20th International Conference on Artificial Intelligence and Statistics},
+  pages = 	 {528--536},
+  year = 	 {2017},
+  editor = 	 {Singh, Aarti and Zhu, Jerry},
+  volume = 	 {54},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {20--22 Apr},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v54/klein17a/klein17a.pdf},
+  url = 	 {https://proceedings.mlr.press/v54/klein17a.html},
+  abstract = 	 {Bayesian optimization has become a successful tool for hyperparameter optimization of machine learning algorithms, such as support vector machines or deep neural networks. Despite its success, for large datasets, training and validating a single configuration often takes hours, days, or even weeks, which limits the achievable performance. To accelerate hyperparameter optimization, we propose a generative model for the validation error as a function of training set size, which is learned during the optimization process and allows exploration of preliminary configurations on small subsets, by extrapolating to the full dataset.  We construct a Bayesian optimization procedure, dubbed FABOLAS, which models loss and training time as a function of dataset size and automatically trades off high information gain about the global optimum against computational cost. Experiments optimizing support vector machines and deep neural networks show that FABOLAS often finds high-quality solutions 10 to 100 times faster than other state-of-the-art Bayesian optimization methods or the recently proposed bandit strategy Hyperband.}
+}
+
+@article{WU201926,
+title = {Hyperparameter Optimization for Machine Learning Models Based on Bayesian Optimizationb},
+journal = {Journal of Electronic Science and Technology},
+volume = {17},
+number = {1},
+pages = {26-40},
+year = {2019},
+issn = {1674-862X},
+doi = {https://doi.org/10.11989/JEST.1674-862X.80904120},
+url = {https://www.sciencedirect.com/science/article/pii/S1674862X19300047},
+author = {Jia Wu and Xiu-Yun Chen and Hao Zhang and Li-Dong Xiong and Hang Lei and Si-Hao Deng},
+keywords = {Bayesian optimization, Gaussian process, hyperparameter optimization, machine learning},
+abstract = {Hyperparameters are important for machine learning algorithms since they directly control the behaviors of training algorithms and have a significant effect on the performance of machine learning models. Several techniques have been developed and successfully applied for certain application domains. However, this work demands professional knowledge and expert experience. And sometimes it has to resort to the brute-force search. Therefore, if an efficient hyperparameter optimization algorithm can be developed to optimize any given machine learning method, it will greatly improve the efficiency of machine learning. In this paper, we consider building the relationship between the performance of the machine learning models and their hyperparameters by Gaussian processes. In this way, the hyperparameter tuning problem can be abstracted as an optimization problem and Bayesian optimization is used to solve the problem. Bayesian optimization is based on the Bayesian theorem. It sets a prior over the optimization function and gathers the information from the previous sample to update the posterior of the optimization function. A utility function selects the next sample point to maximize the optimization function. Several experiments were conducted on standard test datasets. Experiment results show that the proposed method can find the best hyperparameters for the widely used machine learning models, such as the random forest algorithm and the neural networks, even multi-grained cascade forest under the consideration of time cost.}
+}
+
+@article{10.1039/c9sc04026a,
+    author = {Griffiths, Ryan-Rhys and Hernández-Lobato, José Miguel},
+    title = {Constrained Bayesian optimization for automatic chemical design using variational autoencoders},
+    journal = {Chemical Science},
+    volume = {11},
+    number = {2},
+    pages = {577-586},
+    year = {2020},
+    month = {01},
+    abstract = { Automatic Chemical Design is a framework for generating novel molecules with optimized properties. The original scheme, featuring Bayesian optimization over the latent space of a variational autoencoder, suffers from the pathology that it tends to produce invalid molecular structures. First, we demonstrate empirically that this pathology arises when the Bayesian optimization scheme queries latent space points far away from the data on which the variational autoencoder has been trained. Secondly, by reformulating the search procedure as a constrained Bayesian optimization problem, we show that the effects of this pathology can be mitigated, yielding marked improvements in the validity of the generated molecules. We posit that constrained Bayesian optimization is a good approach for solving this kind of training set mismatch in many generative tasks involving Bayesian optimization over the latent space of a variational autoencoder. },
+    issn = {2041-6520},
+    doi = {10.1039/c9sc04026a},
+    url = {https://doi.org/10.1039/c9sc04026a},
+    eprint = {https://pubs.rsc.org/sc/article-pdf/11/2/577/6907411/c9sc04026a.pdf},
+}
+
+@article{10.1039/d2nr07147a,
+    author = {Jin, Yimeng and Kumar, Priyank V.},
+    title = {Bayesian optimisation for efficient material discovery: a mini review},
+    journal = {Nanoscale},
+    volume = {15},
+    number = {26},
+    pages = {10975-10984},
+    year = {2023},
+    month = {07},
+    abstract = { Bayesian optimisation (BO) has been increasingly utilised to guide material discovery. While BO is advantageous due to its sample efficiency, flexibility and versatility, it is constrained by a range of core issues including high-dimensional optimisation, mixed search space, multi-objective optimisation and multi-fidelity data. Although various studies have attempted to tackle one or some challenges, a comprehensive BO framework for material discovery is yet to be uncovered. This work provides a short review aiming at connecting algorithmic advancement to material applications. Open algorithmic challenges are discussed and supported by recent material applications. Various open-source packages are compared to assist the selection. Furthermore, three exemplary material design problems are analysed to demonstrate how BO could be useful. The review concludes with an outlook on BO-aided autonomous laboratory. },
+    issn = {2040-3364},
+    doi = {10.1039/d2nr07147a},
+    url = {https://doi.org/10.1039/d2nr07147a},
+    eprint = {https://pubs.rsc.org/nr/article-pdf/15/26/10975/8634599/d2nr07147a.pdf},
+}
+
+@article{calandra2016bayesian,
+  title={Bayesian optimization for learning gaits under uncertainty: An experimental comparison on a dynamic bipedal walker},
+  author={Calandra, Roberto and Seyfarth, Andr{\'e} and Peters, Jan and Deisenroth, Marc Peter},
+  journal={Annals of Mathematics and Artificial Intelligence},
+  volume={76},
+  number={1},
+  pages={5--23},
+  year={2016},
+  publisher={Springer}
+} % GS
+
+
+@article{berkenkamp2023bayesian,
+  title={Bayesian optimization with safety constraints: safe and automatic parameter tuning in robotics},
+  author={Berkenkamp, Felix and Krause, Andreas and Schoellig, Angela P},
+  journal={Machine learning},
+  volume={112},
+  number={10},
+  pages={3713--3747},
+  year={2023},
+  publisher={Springer}
+} % GS

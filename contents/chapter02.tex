@@ -1,166 +1,122 @@
 % !TeX root = ../main.tex
 
-\chapter{Using This Template}\label{chap:template}
+\chapter{Background}\label{chap:template}
 
-This chapter is a working example of everything the template can typeset.
-Delete it once you have copied out the pieces you need --- nothing else depends
-on it.
+\section{Black-box Function}
 
-\section{Sections and Cross-References}
+Consider the problem of minimizing an objective function $f: \mathcal{X} \to \mathbb{R}$ over a compact search space $\mathcal{X} \subset \mathbb{R}^d$:
 
-Chapters, sections, and subsections are numbered automatically. Give anything
-you want to point at a \verb|\label|, then refer to it with \verb|\ref|, and
-the number stays correct however much you reorder the document later.
-
-\subsection{A Subsection}
-
-Subsections nest one level deeper and still appear in the table of contents.
-Going deeper than \verb|\subsubsection| is possible but rarely reads well.
-
-Footnotes work as usual.\footnote{Keep them short. A footnote that runs longer
-than the paragraph anchoring it usually belongs in the body or an appendix.}
-
-\section{Mathematics}
-
-Inline mathematics such as $E = mc^2$ sits in the run of text. Displayed
-equations are numbered and can be referenced like anything else:
-%
 \begin{equation}
-\label{eq:example}
-\bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i .
+  x^* = \arg\min_{x \in \mathcal{X}} f(x).
 \end{equation}
-%
-Equation~\eqref{eq:example} defines the sample mean.
 
-% wherelist 是這個模板自訂的環境（定義在 environments.tex），
-% 用來在公式後面列出符號說明，「where」會自動印出來。
-% wherelist is defined in environments.tex. It prints the word "where" for you
-% and aligns the symbol column automatically.
-The custom \texttt{wherelist} environment explains the symbols directly beneath
-an equation, in the style most engineering and science journals expect:
-%
+In the black-box setting, $f$ has no known analytic form and its gradient is unavailable. The only access to $f$ is through queries: evaluating a chosen point $x$ returns a possibly noisy observation
+
 \begin{equation}
-\label{eq:variance}
-s^2 = \frac{1}{n-1} \sum_{i=1}^{n} \left( x_i - \bar{x} \right)^2 ,
+  y = f(x) + \epsilon, \qquad \epsilon \sim \mathcal{N}(0, \sigma^2),
 \end{equation}
-\begin{wherelist}
-  \item[$s^2$] is the sample variance;
-  \item[$n$] is the number of observations;
-  \item[$x_i$] is the $i$-th observation;
-  \item[$\bar{x}$] is the sample mean defined in Equation~\eqref{eq:example}.
-\end{wherelist}
 
-\section{Figures}
+where the noiseless case corresponds to $\sigma^2 = 0$. Furthermore, each evaluation is often expensive. Examples include training a machine learning model to obtain a validation error, running a long simulation, or conducting a physical experiment, so that the total budget is typically limited to tens or hundreds of evaluations.
 
-A single figure floats to a convenient place on the page. The optional argument
-of \verb|\caption| is the short form that appears in the List of Figures, which
-keeps a long explanatory caption from swamping the front matter.
+Classical gradient-based methods, such as gradient descent, Newton's method, and quasi-Newton methods, require derivative information and are therefore inapplicable here. Derivative-free methods rely only on function values and can be used instead. These include grid search and random search \citep{JMLR:v13:bergstra12a}, direct search methods such as Nelder-Mead \citep{10.1093/comjnl/7.4.308}, and evolutionary or population-based methods such as genetic algorithms and CMA-ES \citep{6790628}. However, these methods make few structural assumptions about $f$ and do not explicitly reuse information from past evaluations to decide where to query next, so they typically require a large number of evaluations to converge.
 
-\begin{figure}[htbp]
-  \centering
-  \includegraphics[width=0.7\linewidth]{figures/example-histogram.pdf}
-  \caption[Distribution of a measured quantity]{Distribution of a measured
-  quantity, with the fitted normal density drawn on top. Give the reader
-  everything needed to interpret the figure without hunting through the body
-  text: what was measured, how many observations, and what the curve is.}
-  \label{fig:histogram}
-\end{figure}
+An effective method for expensive black-box optimization should therefore (i) achieve good solutions with few evaluations, (ii) cope with observation noise, and (iii) balance exploration of uncertain regions with exploitation of promising ones. Bayesian optimization (BO) addresses these requirements by building a probabilistic model of $f$ from the observations collected so far and using it to select the next query point. We introduce BO in the next section.
 
-Figure~\ref{fig:histogram} is referenced by label, so its number survives being
-moved to another chapter.
+\section{Bayesian Optimization}
 
-Several related panels belong in one float, each with its own sub-caption and
-label:
+Bayesian optimization (BO) is a sequential, model-based strategy for the expensive black-box problem in (2.1)–(2.2) (Močkus, 1975; Jones et al., 1998; Shahriari et al., 2016; Frazier, 2018). Instead of treating $f$ as an unknown to be probed blindly, BO maintains a probabilistic belief about $f$ and updates it after every evaluation. Let
 
-\begin{figure}[htbp]
-  \centering
-  \begin{subfigure}{0.48\linewidth}
-    \includegraphics[width=\linewidth]{figures/example-scatter.pdf}
-    \caption{Linear fit with a 95\% confidence band}
-    \label{fig:scatter}
-  \end{subfigure}
-  \hfill
-  \begin{subfigure}{0.48\linewidth}
-    \includegraphics[width=\linewidth]{figures/example-boxplot.pdf}
-    \caption{Distribution by treatment group}
-    \label{fig:boxplot}
-  \end{subfigure}
+\begin{equation}
+  \mathcal{D}_n = \{(x_i, y_i)\}_{i=1}^{n}
+\end{equation}
 
-  \vspace{1em}
+denote the observations collected after $n$ evaluations. At each iteration, BO uses $\mathcal{D}_n$ to decide where to query next, in two steps:
 
-  \begin{subfigure}{0.48\linewidth}
-    \includegraphics[width=\linewidth]{figures/example-errorbar.pdf}
-    \caption{Two methods over time, with standard errors}
-    \label{fig:errorbar}
-  \end{subfigure}
-  \caption[Three common ways of presenting a comparison]{Three common ways of
-  presenting a comparison. Sub-figures are referenced individually, as in
-  Figure~\ref{fig:scatter}, or as a group, as in Figure~\ref{fig:panels}.}
-  \label{fig:panels}
-\end{figure}
+1. Surrogate model. A probabilistic model is fitted to $\mathcal{D}_n$ and yields a predictive distribution $p(y \mid x, \mathcal{D}_n)$ at any candidate point $x \in \mathcal{X}$. This distribution summarizes both what is believed about $f(x)$ (its mean) and how uncertain that belief is (its spread). Because the surrogate is cheap to evaluate, it stands in for the expensive $f$.
 
-Vector PDFs keep their quality at any zoom level and are what plotting
-libraries should be asked to emit. Bitmap formats are a last resort, and photos
-belong in PNG or JPEG at a resolution high enough to survive printing.
+2. Acquisition function. A function $\alpha(x; \mathcal{D}_n)$ computed from the predictive distribution scores each candidate point by how useful it would be to evaluate next. Points with a promising predicted value (exploitation) or high uncertainty (exploration) receive high scores. The next query point is
 
-\section{Tables}
+\begin{equation}
+  x_{n+1} = \arg\max_{x \in \mathcal{X}} \alpha(x; \mathcal{D}_n).
+\end{equation}
 
-\texttt{booktabs} gives tables the horizontal rules journals expect. Vertical
-rules and double rules are deliberately hard to draw with it, because they make
-tables harder to read.
+Since $\alpha$ is inexpensive, the inner maximization in (2.3) costs far less than a single evaluation of $f$. The overall procedure is summarized in Algorithm 1.
 
-\begin{table}[htbp]
-  \centering
-  \caption{Summary statistics by treatment group}
-  \label{tab:summary}
-  \begin{tabular}{lrrr}
-    \toprule
-    Group   & $n$ & Mean & Std.\ dev. \\
-    \midrule
-    Control &  90 & 19.8 & 4.1 \\
-    Low     &  90 & 23.2 & 5.0 \\
-    Medium  &  90 & 26.9 & 4.4 \\
-    High    &  90 & 31.6 & 5.9 \\
-    \bottomrule
-  \end{tabular}
-\end{table}
+\section{Surrogate Models}
 
-Table~\ref{tab:summary} sits above its data by convention: table captions go on
-top, figure captions underneath. Note that the caption comes before the
-tabular material in the source, and that a table wider than the text block
-should be rotated or moved to an appendix rather than shrunk until it is
-illegible.
+The surrogate model is the component of BO that turns the observations $\mathcal{D}_n$ into a belief about $f$. For use within BO, a surrogate should (i) return a full predictive distribution $p(y \mid x, \mathcal{D}_n)$ rather than a point estimate, since the uncertainty drives exploration; (ii) be accurate with very few observations, as the evaluation budget is small; and (iii) be cheap to fit and query relative to a single evaluation of $f$. In addition, practical problems often call for (iv) robustness to the choice of modelling assumptions and (v) the ability to handle mixed or categorical inputs. We review two surrogates: the Gaussian process, which is the standard choice, and tabular foundation models, which have recently emerged as an alternative.
 
-\section{Source Code}
+\subsection{Gaussian Process}
 
-\texttt{minted} colours code through Pygments, which needs the compiler to run
-with \verb|-shell-escape|. Overleaf enables this by default, and the local
-build in this repository passes the flag for you.
+A Gaussian process (GP) is a distribution over functions such that any finite collection of function values is jointly Gaussian (Rasmussen and Williams, 2006). We write
 
-\begin{minted}[fontsize=\small]{python}
-def sample_variance(values):
-    """Return the unbiased sample variance of a sequence of numbers."""
-    n = len(values)
-    if n < 2:
-        raise ValueError("variance needs at least two observations")
-    mean = sum(values) / n
-    return sum((value - mean) ** 2 for value in values) / (n - 1)
-\end{minted}
+\begin{equation}
+  f \sim \mathcal{GP}\big(m(\cdot),\, k(\cdot,\cdot)\big),
+\end{equation}
 
-Short fragments read better inline: \mintinline{python}{sum(values) / n}.
+where $m(x) = \mathbb{E}[f(x)]$ is the mean function and $k(x, x') = \mathrm{Cov}(f(x), f(x'))$ is the covariance (kernel) function. The mean is commonly set to a constant or zero after standardizing the data, so the kernel carries most of the modelling assumptions. A widely used choice in BO is the Matérn-$5/2$ kernel,
 
-\section{Citations}
+% $$
+% k(x, x') = \sigma_f^2 \left(1 + \sqrt{5}\, r + \tfrac{5}{3} r^2\right) \exp\!\left(-\sqrt{5}\, r\right), \qquad r = \sqrt{\textstyle\sum_{j=1}^{d} \frac{(x_j - x_j')^2}{\ell_j^2}}, \tag{2.5}
+% $$
 
-\texttt{biblatex} manages citations, and \texttt{biber} processes the
-bibliography. In \texttt{main.tex}, the configured
-\mbox{\texttt{numeric-comp}} style compresses consecutive numbers into a range.
+where $\sigma_f^2$ is the signal variance and $\ell_1, \dots, \ell_d$ are length-scales (one per dimension, the so-called automatic relevance determination form). The kernel encodes assumptions such as smoothness and how quickly correlations decay with distance.
 
-A plain citation looks like this~\cite{warren1890}. Several at once collapse
-automatically~\cite{said1978,fisher1936,vaswani2017}. \texttt{biblatex} also
-offers \verb|\parencite| for a parenthesised form~\parencite{surgeongeneral1964}
-and \verb|\textcite| for one that reads as part of the sentence:
-\textcite{geertz1973} makes this point directly.
+Under the observation model (2.2), let $\mathbf{X} = (x_1, \dots, x_n)^\top$, $\mathbf{y} = (y_1, \dots, y_n)^\top$, $K = [k(x_i, x_j)]_{i,j}$, and $\mathbf{k}(x) = (k(x, x_1), \dots, k(x, x_n))^\top$. The posterior of $f(x)$ given $\mathcal{D}_n$ is Gaussian with closed-form mean and variance:
 
-The bibliography in \texttt{back/references.bib} carries one real, published
-example of every entry type \texttt{biblatex} supports, so you can copy the
-closest match rather than guessing which fields a type requires.
+\begin{equation}
+  \mu_n(x) = m(x) + \mathbf{k}(x)^\top (K + \sigma^2 I)^{-1} (\mathbf{y} - \mathbf{m}),
+\end{equation}
+
+\begin{equation}
+  \sigma_n^2(x) = k(x, x) - \mathbf{k}(x)^\top (K + \sigma^2 I)^{-1} \mathbf{k}(x),
+\end{equation}
+
+where $\mathbf{m} = (m(x_1), \dots, m(x_n))^\top$. The predictive distribution for a new noisy observation is then $p(y \mid x, \mathcal{D}_n) = \mathcal{N}(\mu_n(x),\, \sigma_n^2(x) + \sigma^2)$. This closed form is what makes the GP so convenient for BO: the mean $\mu_n$ and standard deviation $\sigma_n$ can be used directly in acquisition functions.
+
+The hyperparameters $\boldsymbol{\theta} = (\sigma_f^2, \ell_1, \dots, \ell_d, \sigma^2)$ are typically estimated by maximizing the log marginal likelihood,
+
+\begin{equation}
+  \log p(\mathbf{y} \mid \mathbf{X}, \boldsymbol{\theta}) = -\tfrac{1}{2} (\mathbf{y} - \mathbf{m})^\top (K + \sigma^2 I)^{-1} (\mathbf{y} - \mathbf{m}) - \tfrac{1}{2} \log |K + \sigma^2 I| - \tfrac{n}{2} \log 2\pi,
+\end{equation}
+
+or, in a fully Bayesian treatment, by placing priors on $\boldsymbol{\theta}$ and averaging over the posterior using MCMC (Snoek et al., 2012).
+
+Limitations. Despite its popularity, the GP has several limitations that matter for BO:
+
+\begin{itemize}
+  \item Computational cost. Evaluating (2.6)–(2.8) requires factorizing the $n \times n$ matrix $K + \sigma^2 I$, which costs $O(n^3)$ time and $O(n^2)$ memory. This is rarely an issue for tens of observations but becomes restrictive as $n$ grows.
+  \item Hyperparameter estimation. The marginal likelihood (2.8) is non-convex in $\boldsymbol{\theta}$ and can be poorly identified from few observations, so the fitted surrogate can be sensitive to initialization and the estimation procedure. The full Bayesian treatment mitigates this at additional computational cost.
+  \item Kernel choice and stationarity. The kernel imposes a fixed notion of smoothness. Standard stationary kernels such as (2.5) struggle with non-stationary or discontinuous objectives, and a poorly chosen kernel can mislead the search.
+  \item High dimensions. Because kernels rely on distances, GP performance typically degrades as $d$ grows, and BO with GP surrogates is generally considered most effective in low to moderate dimensions.
+  \item Mixed and categorical inputs. Kernels are defined naturally on continuous spaces; categorical or mixed variables require specialized kernel constructions.
+\end{itemize}
+
+These limitations motivate surrogate models that require less manual specification and handle heterogeneous inputs more naturally. We turn to one such alternative next.
+
+\subsection{Tabular Foundation Models}
+
+Tabular data has long been the domain of gradient-boosted decision trees, with deep learning making limited headway. Tabular foundation models (TFMs) change this picture by pretraining a single network on large collections of synthetic datasets and then applying it to new tasks without task-specific training. The best-known family is TabPFN (Hollmann et al., 2023, 2025), whose successive releases scaled from small classification problems to millions of cells, with the most recent being TabPFN-3.5 (Prior Labs Team, 2026). According to its developers' report, TabPFN-3.5 ranks first on a range of public tabular benchmarks, including TabArena.
+
+Prior-data fitted networks. TabPFN builds on the prior-data fitted network (PFN) framework (Müller et al., 2022). Let $p(\mathcal{D})$ denote a prior over datasets, obtained by sampling data-generating processes from a synthetic prior. A transformer $q_\phi$ is trained to predict a held-out label given the remaining observations as context:
+
+\begin{equation}
+  \mathcal{L}(\phi) = \mathbb{E}_{(\mathcal{D}_n,\, x,\, y) \sim p}\big[-\log q_\phi(y \mid x, \mathcal{D}_n)\big].
+\end{equation}
+
+The expected cross-entropy in (2.9) is minimized when $q_\phi(y \mid x, \mathcal{D}_n)$ equals the posterior predictive distribution $p(y \mid x, \mathcal{D}_n)$ under the prior. A trained PFN therefore approximates Bayesian posterior prediction with respect to the synthetic prior, without any explicit likelihood or posterior computation at test time. This interpretation requires two qualifications: the posterior is conditional on the implicit prior used in pretraining, and the quality of the approximation depends on network capacity and training.
+
+Inference as in-context learning. At inference time, the observed data $\mathcal{D}_n$ is supplied as context and the candidate point $x$ as the query. A single forward pass returns $q_\phi(y \mid x, \mathcal{D}_n)$, with no gradient updates and no per-task hyperparameter fitting. This notation matches the predictive distribution $p(y \mid x, \mathcal{D}_n)$ used in Section 2.2, so a TFM can replace a GP without changing the BO loop.
+
+Regression output. For regression, TabPFN-3.5 predicts a distribution over fixed bins covering the range of the target. The predictive distribution is thus discrete (piecewise constant), not Gaussian. The mean, variance, quantiles, and tail probabilities can all be computed directly from the bin probabilities. Quantities that have closed forms under a Gaussian, such as expected improvement, are instead obtained by summation over bins (Section 2.4). TabPFN-3.5 uses a single checkpoint of about 220 million parameters trained jointly for classification and regression, and by default averages predictions over eight estimators applied to different permutations of the data. Its recommended limits are up to one million training rows and 6,000 features. These are recommendations for strong performance, not computational limits, and both far exceed the budgets typical of BO.
+
+Use as a BO surrogate. Because the output is a full predictive distribution over the noisy observation $y$, a TFM satisfies requirements (i)–(iii) of Section 2.3 directly. TabPFN-based surrogates have already been explored in the BO literature, for example for high-dimensional problems (Yu et al., 2025) and in a zero-shot setting (Rogers and Ponnada, 2026). Two details matter for statistical interpretation. First, the predictive distribution is over $y$ rather than the latent $f(x)$, which parallels the distinction between the predictive variance $\sigma_n^2(x) + \sigma^2$ and the posterior variance $\sigma_n^2(x)$ in Section 2.3.1. Second, the model returns a marginal distribution for each query point and does not provide a joint posterior over several points.
+
+% Limitations.
+
+% - *Implicit prior.* The prior is fixed during pretraining and cannot be inspected or adjusted the way a kernel can. If the objective is atypical relative to the synthetic prior, the predictive distribution may be misleading.
+% - *Calibration under sequential sampling.* Reported evidence of good predictive distributions comes from benchmarks of i.i.d. data (e.g., ScoringBench). In BO the data are collected adaptively and concentrate near promising regions, which departs from this setting, so calibration cannot be assumed and must be examined empirically.
+% - *Marginal predictions.* Without joint posterior samples, acquisition strategies that rely on them (e.g., Thompson sampling, batch acquisition) are not directly available.
+% - *Computational resources.* Each prediction requires a forward pass of a large transformer, which in practice calls for a GPU, and the open-weight checkpoints are released under a non-commercial license.
+
+\section{Acquisition Functions}

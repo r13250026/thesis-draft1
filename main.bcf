@@ -3085,7 +3085,10 @@
     <bcf:citekey order="9" intorder="1">10.1007/978-3-642-25566-3_40</bcf:citekey>
     <bcf:citekey order="10" intorder="1">NIPS2016_a96d3afe</bcf:citekey>
     <bcf:citekey order="11" intorder="1">pmlr-v37-snoek15</bcf:citekey>
-    <bcf:citekey order="12" intorder="1" nocite="1">*</bcf:citekey>
+    <bcf:citekey order="12" intorder="1">JMLR:v13:bergstra12a</bcf:citekey>
+    <bcf:citekey order="13" intorder="1">10.1093/comjnl/7.4.308</bcf:citekey>
+    <bcf:citekey order="14" intorder="1">6790628</bcf:citekey>
+    <bcf:citekey order="15" intorder="1" nocite="1">*</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

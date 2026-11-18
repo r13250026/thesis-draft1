@@ -3071,24 +3071,21 @@
     <bcf:datasource type="file" datatype="bibtex" glob="false">back/references.bib</bcf:datasource>
   </bcf:bibdata>
   <bcf:section number="0">
-    <bcf:citekey order="1" intorder="1">pmlr-v54-klein17a</bcf:citekey>
-    <bcf:citekey order="1" intorder="2">WU201926</bcf:citekey>
-    <bcf:citekey order="2" intorder="1">10.1039/c9sc04026a</bcf:citekey>
-    <bcf:citekey order="2" intorder="2">10.1039/d2nr07147a</bcf:citekey>
-    <bcf:citekey order="3" intorder="1">calandra2016bayesian</bcf:citekey>
-    <bcf:citekey order="3" intorder="2">berkenkamp2023bayesian</bcf:citekey>
-    <bcf:citekey order="4" intorder="1">frazier2018tutorial</bcf:citekey>
-    <bcf:citekey order="5" intorder="1">10.1145/3582078</bcf:citekey>
-    <bcf:citekey order="6" intorder="1">LI2026114819</bcf:citekey>
-    <bcf:citekey order="7" intorder="1">pmlr-v32-snoek14</bcf:citekey>
-    <bcf:citekey order="8" intorder="1">rasmussen2003gaussian</bcf:citekey>
-    <bcf:citekey order="9" intorder="1">10.1007/978-3-642-25566-3_40</bcf:citekey>
-    <bcf:citekey order="10" intorder="1">NIPS2016_a96d3afe</bcf:citekey>
-    <bcf:citekey order="11" intorder="1">pmlr-v37-snoek15</bcf:citekey>
-    <bcf:citekey order="12" intorder="1">JMLR:v13:bergstra12a</bcf:citekey>
-    <bcf:citekey order="13" intorder="1">10.1093/comjnl/7.4.308</bcf:citekey>
-    <bcf:citekey order="14" intorder="1">6790628</bcf:citekey>
-    <bcf:citekey order="15" intorder="1" nocite="1">*</bcf:citekey>
+    <bcf:citekey order="1" intorder="1">JMLR:v13:bergstra12a</bcf:citekey>
+    <bcf:citekey order="2" intorder="1">10.1093/comjnl/7.4.308</bcf:citekey>
+    <bcf:citekey order="3" intorder="1">6790628</bcf:citekey>
+    <bcf:citekey order="4" intorder="1">Močkus1975</bcf:citekey>
+    <bcf:citekey order="4" intorder="2">jones1998efficient</bcf:citekey>
+    <bcf:citekey order="4" intorder="3">7352306</bcf:citekey>
+    <bcf:citekey order="4" intorder="4">frazier2018tutorial</bcf:citekey>
+    <bcf:citekey order="5" intorder="1">rasmussen2006gaussian</bcf:citekey>
+    <bcf:citekey order="6" intorder="1">rasmussen2006gaussian</bcf:citekey>
+    <bcf:citekey order="7" intorder="1">pmlr-v119-ru20a</bcf:citekey>
+    <bcf:citekey order="8" intorder="1">pmlr-v139-wan21b</bcf:citekey>
+    <bcf:citekey order="9" intorder="1">pmlr-v206-deshwal23a</bcf:citekey>
+    <bcf:citekey order="10" intorder="1">pmlr-v206-deshwal23a</bcf:citekey>
+    <bcf:citekey order="11" intorder="1">pmlr-v119-ru20a</bcf:citekey>
+    <bcf:citekey order="12" intorder="1" nocite="1">*</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

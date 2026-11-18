@@ -103,6 +103,8 @@
 \usepackage{placeins}                   % 限制圖片浮動位置
 \usepackage{tikz}                       % 流程圖
 \usepackage{graphicx}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \usepackage{lipsum}                     % 英文亂字
 \usepackage{zhlipsum}                   % 中文亂字
@@ -155,6 +157,9 @@
 \appto{\bibsetup}{\emergencystretch=3em}
 \DeclareFieldFormat{note}{\nobreak\hfil\penalty0\hfilneg#1}
 
+\newcounter{bibcount}
+\AtEveryBibitem{\stepcounter{bibcount}}
+
 \begin{document}
 
 % 封面與口試審定
@@ -177,7 +182,7 @@
 % 論文內容
 % Contents of Thesis
 \mainmatter
-\input{contents/chapter01}
+% \input{contents/chapter01}
 \input{contents/chapter02}
 % \input{contents/chapter03}
 % \input{contents/chapter04}
@@ -193,6 +198,7 @@
 % writing, or uncited entries will show up in your bibliography.
 \nocite{*}
 \printbibliography
+\arabic{bibcount}
 
 % 附錄
 % Appendices

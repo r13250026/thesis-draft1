@@ -82,13 +82,13 @@ where $\mu_0(\boldsymbol{x}) = \mathbb{E}[f(\boldsymbol{x})]$ is the prior mean 
 
 where $\delta$ is the Kronecker delta and $\lambda_j \ge 0$ is a weight that plays the role of an automatic relevance determination parameter. It measures the extent to which two inputs share the same levels, and a variable with a small $\lambda_j$ contributes little to the similarity. The transformed overlap kernel \citep{pmlr-v139-wan21b} applies the exponential function to the overlap kernel, which increases its expressive power. \citet{pmlr-v206-deshwal23a} proposed the Hamming embedding via dictionary kernel (HED), which transforms categorical configurations into continuous representations to enable the use of standard kernel functions. % The diffusion kernel (Oh et al., 2019) defines similarity through a graph over categorical configurations and is designed for purely categorical problems.
 
-\textbf{Combining the two parts.} The continuous and categorical kernels can be combined by a product, a sum, or a mixture of the two. With the product form,
+\textbf{Combining the two parts.} The continuous and categorical kernels can be combined by a sum, a product, or a mixture of the two. A sum shares a common trend over the continuous variables across all categorical configurations, whereas a product allows the two parts to interact but vanishes when two points share no categorical level. A mixture,
 
 \begin{equation}
-  k(\boldsymbol{x}, \boldsymbol{x}') = \sigma_f^2\, k_c(\boldsymbol{x}_c, \boldsymbol{x}_c')\, k_d(\boldsymbol{x}_d, \boldsymbol{x}_d'),
+  k(\boldsymbol{x}, \boldsymbol{x}') = (1-\gamma)\big(k_c(\boldsymbol{x}_c, \boldsymbol{x}_c') + k_d(\boldsymbol{x}_d, \boldsymbol{x}_d')\big) + \gamma\, k_c(\boldsymbol{x}_c, \boldsymbol{x}_c')\, k_d(\boldsymbol{x}_d, \boldsymbol{x}_d'),
 \end{equation}
 
-where $\sigma_f^2$ is the signal variance, two inputs are highly correlated only when they are close in the continuous part and agree on many of the categorical variables. The sum form instead allows information to be shared across levels through the continuous part alone. A mixture of the two lets the data decide how strongly the categorical and continuous effects interact \citep{pmlr-v119-ru20a}.
+where $\gamma \in [0,1]$ controls how strongly the categorical and continuous parts interact \citep{pmlr-v119-ru20a}.
 
 \textbf{Posterior and hyperparameter estimation.} Let $\boldsymbol{X} = (\boldsymbol{x}_1, \dots, \boldsymbol{x}_n)^\top$, $\boldsymbol{y} = (y_1, \dots, y_n)^\top$, $K = [k(\boldsymbol{x}_i, \boldsymbol{x}_j)]_{i,j}$, and $\boldsymbol{k}(\boldsymbol{x}) = (k(\boldsymbol{x}, \boldsymbol{x}_1), \dots, k(\boldsymbol{x}, \boldsymbol{x}_n))^\top$. The posterior of $f(\boldsymbol{x})$ given $\mathcal{D}_n$ is Gaussian with
 
@@ -113,3 +113,109 @@ where $\boldsymbol{\mu}_0 = (\mu_0(\boldsymbol{x}_1), \dots, \mu_0(\boldsymbol{x
 \end{itemize}
 
 These difficulties motivate surrogates that require less manual specification of similarity between inputs.
+
+\subsection{Tabular Foundation Models}
+
+The difficulties of the GP in Section 2.3.1 share a common source. The similarity between inputs has to be specified by the modeller through a kernel, and the kernel parameters have to be estimated from few observations. Tabular foundation models (TFMs) take a different route. A single network is pretrained on a large collection of synthetic datasets and then makes predictions for a new dataset without task-specific training. The best-known family is TabPFN (Hollmann et al., 2023, 2025), whose releases have grown from small classification problems to large tables with many features. The most recent is TabPFN-3.5 (Prior Labs Team, 2026), and this thesis uses its open-weight checkpoint.
+
+\textbf{Prior-data fitted networks.} TabPFN builds on the prior-data fitted network (PFN) framework (Müller et al., 2022). Let $p(\mathcal{D})$ denote a prior over datasets, obtained by sampling data-generating processes from a synthetic prior. A transformer $q_\phi$ is trained to predict a held-out label given the remaining observations as context:
+
+\begin{equation}
+  \mathcal{L}(\phi) = \mathbb{E}_{(\mathcal{D}_n,\, x,\, y) \sim p}\big[-\log q_\phi(y \mid x, \mathcal{D}_n)\big].
+\end{equation}
+
+The expected cross-entropy in (2.11) is minimized when $q_\phi(y \mid x, \mathcal{D}_n)$ equals the posterior predictive distribution $p(y \mid x, \mathcal{D}_n)$ under the prior. A trained PFN therefore approximates Bayesian posterior prediction with respect to the synthetic prior, without an explicit likelihood or posterior computation at test time. Two qualifications apply. The posterior is conditional on the implicit prior used in pretraining, and the quality of the approximation depends on network capacity and training.
+
+\textbf{Inference as in-context learning.} At inference time, the observed data $\mathcal{D}_n$ is supplied as context and the candidate point $x$ as the query. A single forward pass returns $q_\phi(y \mid x, \mathcal{D}_n)$, with no gradient updates and no per-task hyperparameter fitting. This predictive distribution has the same form as $p(y \mid x, \mathcal{D}_n)$ in Section 2.1, so a TFM can take the place of the GP in Algorithm 1 without any other change.
+
+\textbf{Categorical inputs.} TabPFN-3.5 accepts numerical and categorical features directly. No kernel is specified, and no similarity between levels has to be encoded by the user. Categorical columns must be declared as such, since otherwise they may be treated as numerical. According to the technical report, the per-cell encodings of TabPFN-3.5 were revised to improve the handling of high-cardinality categorical features, and the synthetic prior was adjusted toward such data. Two points are relevant for BO. First, no kernel fixes in advance how levels are related or how a categorical variable changes the function over the continuous variables. Whether this structure can be recovered from tens of observations is an empirical question, which is examined in Chapter 4. Second, the benchmarks reported by the developers span tiny to million-row tables, but the smallest dataset in TabArena has about 500 training rows, which is above the budget of a typical BO run. Those results therefore do not directly show performance at BO sample sizes.
+
+\textbf{Regression output and model details.} For regression, TabPFN-3.5 predicts a distribution over fixed bins covering the range of the target. The predictive distribution is thus discrete and not Gaussian, and its mean, variance, quantiles, and tail probabilities follow from the bin probabilities. TabPFN-3.5 is a single checkpoint of about 220 million parameters trained jointly for classification and regression. By default it averages predictions over eight estimators applied to different permutations of the data. Its recommended limits are one million training rows and 6,000 features, which are recommendations for strong performance and not computational limits. Both far exceed the budgets and dimensions of the problems considered here.
+
+\textbf{Use as a BO surrogate.} Because the output is a full predictive distribution, a TFM satisfies requirements (i) to (iv) of Section 2.3 in principle. TabPFN-based surrogates have been explored in BO for high-dimensional problems (Yu et al., 2025) and in a zero-shot setting (Rogers and Ponnada, 2026). Two details matter for the statistical interpretation. The predictive distribution is over the noisy observation $y$ and not over the latent value $f(x)$, which parallels the difference between the predictive variance $\sigma_n^2(x) + \sigma^2$ and the posterior variance $\sigma_n^2(x)$ of the GP in Section 2.3.1. The consequences for expected improvement are discussed in Section 2.4.1. In addition, the model returns a marginal distribution for each query point and no joint distribution over several points.
+
+\textbf{Limitations.}
+
+\begin{itemize}
+  \item \textit{Implicit prior.} The prior is fixed during pretraining and cannot be inspected or adjusted the way a kernel can. If the objective differs strongly from the synthetic prior, the predictive distribution may be misleading.
+  \item \textit{Calibration under sequential sampling.} Reported evidence of good predictive distributions comes from benchmarks with i.i.d. data, such as ScoringBench. In BO the data are collected adaptively and concentrate near promising regions, so calibration cannot be assumed and has to be examined empirically.
+  \item \textit{Marginal predictions.} Without joint samples, acquisition strategies that rely on them, such as Thompson sampling, are not directly available.
+  \item \textit{Computational resources.} Each prediction requires a forward pass of a large transformer, which in practice calls for a GPU. The open-weight checkpoints are released under a non-commercial license.
+\end{itemize}
+
+\section{Acquisition Functions}
+
+The acquisition function $\alpha(\boldsymbol{x}; \mathcal{D}_n)$ in (2.3) converts the output of the surrogate into a score that ranks candidate points by their usefulness for the next evaluation. Using it in BO involves two separate tasks. The first is to define the score, which depends only on the surrogate and is the subject of Section 2.3.1. The second is to find its maximizer over $\mathcal{X}$, which in a mixed space is a nontrivial problem of its own and is discussed in Section 2.3.2.
+
+\subsection{Expected Improvement}
+
+Since the objective is minimized, let $y_n^* = \min_{i \le n} y_i$ denote the best observation so far. Probability of improvement \citep{10.1115/1.3653121} scores a point by the probability that it improves on $y_n^*$ but ignores the size of the improvement, and the lower confidence bound \citep{3104322.3104451} trades off the predicted mean against the uncertainty through a parameter that must be chosen. This thesis uses expected improvement \citep{646296.687872, jones1998efficient}, which accounts for both the probability and the size of the improvement and requires no additional parameter:
+
+\begin{equation}
+  \alpha_{\mathrm{EI}}(\boldsymbol{x}) = \mathbb{E}_{f(\boldsymbol{x}) \mid \mathcal{D}_n}\big[\max(y_n^* - f(\boldsymbol{x}),\, 0)\big],
+\end{equation}
+
+where the expectation is taken with respect to the posterior of $f(\boldsymbol{x})$ given $\mathcal{D}_n$. For a GP, this posterior is $\mathcal{N}(\mu_n(\boldsymbol{x}), \sigma_n^2(\boldsymbol{x}))$ as given in (2.7) and (2.8), and the expectation has a closed form. With $z = (y_n^* - \mu_n(\boldsymbol{x})) / \sigma_n(\boldsymbol{x})$,
+
+\begin{equation}
+  \alpha_{\mathrm{EI}}(\boldsymbol{x}) = \sigma_n(\boldsymbol{x})\big[z\,\Phi(z) + \phi(z)\big],
+\end{equation}
+
+where $\Phi$ and $\phi$ denote the standard normal distribution and density functions. The two terms reflect the exploitation–exploration trade-off. The first grows as the predicted mean falls below $y_n^*$, and the second grows with the predictive uncertainty.
+
+TabPFN does not return the posterior of $f(\boldsymbol{x})$ but a predictive distribution for the observation $y$ over fixed bins. This distribution is used in place of the posterior, and the expectation in (2.10) is evaluated by summing over bins. Let bin $k$ span $[b_k, b_{k+1}]$ with width $w_k$ and probability mass $p_k(\boldsymbol{x})$, and assume that the mass is spread uniformly within each bin. Then
+
+\begin{equation}
+  \alpha_{\mathrm{EI}}(\boldsymbol{x}) = \sum_k p_k(\boldsymbol{x})\, e_k, \qquad
+  e_k =
+  \begin{cases}
+  y_n^* - \tfrac{b_k + b_{k+1}}{2}, & y_n^* \ge b_{k+1},\\[2pt]
+  \dfrac{(y_n^* - b_k)^2}{2 w_k}, & b_k < y_n^* < b_{k+1},\\[4pt]
+  0, & y_n^* \le b_k.
+  \end{cases}
+\end{equation}
+
+The substitution is exact when evaluations are noiseless. When they are noisy, the predictive distribution of $y$ is wider than the posterior of $f(\boldsymbol{x})$ by the observation noise, so the exploration value of uncertain points is overestimated. The effect of this approximation is examined in the experiments.
+
+Thompson sampling, which is also common in the literature, requires joint samples from the posterior over several points. A surrogate that returns only marginal predictive distributions does not provide such samples, so it is not considered in this thesis.
+
+\subsection{Acquisition Optimization in Mixed Spaces}
+
+The next query point is the solution of the global problem in (2.3). In a continuous space, this maximization is relatively straightforward and is usually solved with first or second order methods started from several random initial points. In a mixed space, the gradient of $\alpha$ is not defined with respect to the categorical variables, so gradient-based optimizers cannot be applied directly. The problem is further complicated by the structure of $\mathcal{X}$, which combines a continuous part with a combinatorial part of $\prod_{j=1}^{m} K_j$ configurations. In addition, the acquisition function is typically multimodal and may contain flat regions, so the quality of the search affects the quality of the selected point.
+
+\textbf{Zero-order search.} A common approach is to use zero-order methods, which rely only on evaluations of $\alpha$. Since $\alpha$ is cheaper to evaluate than $f$, these methods can afford many evaluations per iteration. %Two of them are described here.
+
+\textit{Genetic algorithm.} A population of candidate points is evolved over several generations. In each generation, parents are selected according to their acquisition values, and offspring are produced by crossover, which recombines the variables of two parents, and by mutation, which changes the level of a categorical variable or perturbs a continuous variable. The fittest individuals survive to the next generation, and the best point found during the search is returned \citep{NEURIPS2020_b19aa25f}.
+
+\textit{Simulated annealing.} A single current point is maintained, and at each step a neighbor is proposed by changing the level of one categorical variable and perturbing the continuous variables. A neighbor that improves $\alpha$ is accepted, and a worse neighbor is accepted with probability $\exp(-\Delta / T)$, where $\Delta$ is the loss in acquisition value and $T$ is a temperature that decreases during the run. The search can therefore leave local maxima early on and becomes increasingly greedy later \citep{doi:10.1126/science.220.4598.671, pmlr-v80-baptista18a}.
+
+Other options combine a discrete search over the categorical part with gradient descent on the continuous part. Casmopolitan (Wan et al., 2021) alternates hill climbing and gradient descent, and CoCaBO (Ru et al., 2020) selects the categorical configuration with a multi-armed bandit. Both require the acquisition function to be differentiable with respect to the continuous variables. Zero-order methods, in contrast, can be paired with any surrogate.
+
+\textbf{Trust regions.} Applied to the whole search space, these optimizers face a difficulty that grows with dimensionality. The surrogate must be accurate over all of $\mathcal{X}$, yet it is fitted from few observations, and its predictions far from the data are unreliable. A trust region addresses this by restricting the acquisition search to a neighborhood of a center point, usually the best point found so far. The idea was developed for continuous BO \citep{eriksson2019scalable} and extended to mixed spaces by Casmopolitan \citep{pmlr-v139-wan21b}. With $\boldsymbol{x}^{\mathrm{TR}} = (\boldsymbol{x}_c^{\mathrm{TR}}, \boldsymbol{x}_d^{\mathrm{TR}})$ the center of the region, a trust region for a mixed space is
+
+\begin{equation}
+  \mathrm{TR}(\boldsymbol{x}^{\mathrm{TR}}) = \big\{ \boldsymbol{x} \in \mathcal{X} : d_H(\boldsymbol{x}_d, \boldsymbol{x}_d^{\mathrm{TR}}) \le L_d, \;\; \lVert \boldsymbol{x}_c - \boldsymbol{x}_c^{\mathrm{TR}} \rVert_\infty \le L_c \big\},
+\end{equation}
+
+where $d_H$ counts the categorical variables whose levels differ from those of the center, $L_d$ bounds the number of categorical variables that may change, and $L_c$ is the half-width of the box around the continuous center. The acquisition function is maximized over $\mathrm{TR}(\boldsymbol{x}^{\mathrm{TR}})$ instead of $\mathcal{X}$. The size of the region is adapted during the run, expanding while the search keeps improving the best observation and shrinking when it does not.
+
+A trust region trades global coverage for reliability, since the acquisition function is evaluated only near points that are already informed by data. It does not depend on the surrogate, so it can be applied identically to every surrogate in the comparison.
+
+The acquisition function and its optimizer are modular components, just as the surrogate is. In the experiments of this thesis, the same optimizer and trust region settings are used across surrogates, so that differences in performance can be attributed to the surrogate. Chapter 3 describes the specific configuration.
+% Genetic algorithm and simulated annealing also serve as non-BO baselines, in which case they optimize $f$ directly and involve neither a surrogate nor an acquisition function.
+
+\section{Related Work}
+
+Existing work on mixed-variable BO can be organized by how it addresses the difficulties in Section 2.2. Most methods are combinations of a surrogate and an acquisition optimizer, so the discussion follows the same split between the two components used in Sections 2.3 and 2.4.
+
+\textbf{One-hot encoding.} A common approach is to convert each categorical variable into a one-hot vector and to apply a standard GP, as in the widely used packages Spearmint (Snoek et al., 2012) and GPyOpt (González et al., 2016). This ignores that the objective is defined only on a small subset of the encoded space. It also increases the input dimension and makes the acquisition function harder to optimize, since the encoded points are far apart and the landscape contains many flat regions (Rana et al., 2017).
+
+\textbf{GP with kernels for categorical inputs.} A second group keeps the GP and replaces the kernel. CoCaBO (Ru et al., 2020) combines an overlap kernel on the categorical part with a kernel on the continuous part and selects the categorical configuration with a multi-armed bandit. Casmopolitan (Wan et al., 2021) uses a transformed overlap kernel together with trust regions defined by Hamming distance and optimizes the acquisition function with hill climbing. BODi (Deshwal et al., 2023) embeds categorical inputs into a continuous space through a Hamming-distance-preserving dictionary representation. COMBO (Oh et al., 2019) uses a diffusion kernel over a graph of categorical configurations and targets purely categorical problems. EXP3BO (Gopakumar et al., 2018) handles the setting in which the continuous variables are specific to a category by fitting a separate GP for each category, which shares no information across categories and therefore suits only a small number of categories.
+
+\textbf{Tree-based methods.} Random forests handle categorical and continuous variables natively and are the surrogate of SMAC (Hutter et al., 2011). Their uncertainty estimates are derived from the variability of the ensemble and are generally considered less reliable than a GP posterior. The tree-structured Parzen estimator (Bergstra et al., 2011) models the density of good and bad configurations instead of the objective and does not return a predictive distribution.
+
+\textbf{Frameworks and benchmarks.} MCBO (reference to be added) provides a modular library in which surrogates, acquisition functions, acquisition optimizers, and trust regions can be combined freely, together with a benchmark suite of synthetic and real tasks. Under this view, the methods above are particular combinations of components, as summarized in Table 2.2. BoTorch (Balandat et al., 2020) is a general library that includes the kernel of Wan et al. (2021) but is aimed mainly at continuous and discrete spaces. The surrogates supported by MCBO are predominantly Gaussian processes with different kernels, so surrogates of other families are less represented in this setting.
+
+\textbf{BO with prior-data fitted networks.} The most closely related work uses PFNs and tabular foundation models as surrogates. PFNs4BO (Müller et al., 2023) trains a prior-data fitted network for BO. GIT-BO (Yu et al., 2025) uses TabPFN for high-dimensional BO and computes an upper confidence bound from the predictive mean and standard deviation of TabPFN, and Rogers and Ponnada (2026) study a zero-shot BO method based on TabPFN. As far as the cited descriptions indicate, these works do not examine mixed spaces with several categorical variables within a controlled comparison of surrogates. %[Claim to be verified against the full texts.]
+
+% **Position of this thesis.** Table 2.2 places this thesis in the same component view. The surrogate is replaced by a tabular foundation model, while the acquisition function, the acquisition optimizer, and the trust region are held fixed. The comparison therefore isolates the effect of the surrogate on mixed-variable BO, including how it depends on the number of categorical variables, their number of levels, and the strength of the interaction between categorical and continuous variables.

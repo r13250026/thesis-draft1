@@ -102,12 +102,18 @@
 \usepackage{minted}                     % 程式碼
 \usepackage{placeins}                   % 限制圖片浮動位置
 \usepackage{tikz}                       % 流程圖
+\usetikzlibrary{positioning, arrows.meta, fit, backgrounds}
 \usepackage{graphicx}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 
 \usepackage{lipsum}                     % 英文亂字
 \usepackage{zhlipsum}                   % 中文亂字
+
+\definecolor{surcol}{RGB}{0,114,178}    % surrogate
+\definecolor{acqcol}{RGB}{230,159,0}    % acquisition function
+\definecolor{optcol}{RGB}{0,158,115}    % acquisition optimizer
+\definecolor{trcol}{RGB}{204,121,167}   % trust region
 
 % --------------------------------------------------
 % 套件設定（Packages Settings）
@@ -182,9 +188,9 @@
 % 論文內容
 % Contents of Thesis
 \mainmatter
-% \input{contents/chapter01}
+\input{contents/chapter01}
 \input{contents/chapter02}
-% \input{contents/chapter03}
+\input{contents/chapter03}
 % \input{contents/chapter04}
 % \input{contents/chapter05}
 

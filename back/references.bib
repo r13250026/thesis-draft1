@@ -335,3 +335,95 @@ url="https://doi.org/10.1007/978-3-662-38527-2_55"
   url = 	 {https://proceedings.mlr.press/v206/deshwal23a.html},
   abstract = 	 {We consider the problem of optimizing expensive black-box functions over high-dimensional combinatorial spaces which arises in many science, engineering, and ML applications. We use Bayesian Optimization (BO) and propose a novel surrogate modeling approach for efficiently handling a large number of binary and categorical parameters. The key idea is to select a number of discrete structures from the input space (the dictionary) and use them to define an ordinal embedding for high-dimensional combinatorial structures. This allows us to use existing Gaussian process models for continuous spaces. We develop a principled approach based on binary wavelets to construct dictionaries for binary spaces, and propose a randomized construction method that generalizes to categorical spaces. We provide theoretical justification to support the effectiveness of the dictionary-based embeddings. Our experiments on diverse real-world benchmarks demonstrate the effectiveness of our proposed surrogate modeling approach over state-of-the-art BO methods.}
 }
+
+@inproceedings{3104322.3104451,
+author = {Srinivas, Niranjan and Krause, Andreas and Kakade, Sham and Seeger, Matthias},
+title = {Gaussian process optimization in the bandit setting: no regret and experimental design},
+year = {2010},
+isbn = {9781605589077},
+publisher = {Omnipress},
+address = {Madison, WI, USA},
+abstract = {Many applications require optimizing an unknown, noisy function that is expensive to evaluate. We formalize this task as a multi-armed bandit problem, where the payoff function is either sampled from a Gaussian process (GP) or has low RKHS norm. We resolve the important open problem of deriving regret bounds for this setting, which imply novel convergence rates for GP optimization. We analyze GP-UCB, an intuitive upper-confidence based algorithm, and bound its cumulative regret in terms of maximal information gain, establishing a novel connection between GP optimization and experimental design. Moreover, by bounding the latter in terms of operator spectra, we obtain explicit sublinear regret bounds for many commonly used covariance functions. In some important cases, our bounds have surprisingly weak dependence on the dimensionality. In our experiments on real sensor data, GP-UCB compares favorably with other heuristical GP optimization approaches.},
+booktitle = {Proceedings of the 27th International Conference on International Conference on Machine Learning},
+pages = {1015–1022},
+numpages = {8},
+location = {Haifa, Israel},
+series = {ICML'10}
+}
+
+@article{10.1115/1.3653121,
+    author = {Kushner, H. J.},
+    title = {A New Method of Locating the Maximum Point of an Arbitrary Multipeak Curve in the Presence of Noise},
+    journal = {Journal of Basic Engineering},
+    volume = {86},
+    number = {1},
+    pages = {97-106},
+    year = {1964},
+    month = {03},
+    abstract = {A versatile and practical method of searching a parameter space is presented. Theoretical and experimental results illustrate the usefulness of the method for such problems as the experimental optimization of the performance of a system with a very general multipeak performance function when the only available information is noise-distributed samples of the function. At present, its usefulness is restricted to optimization with respect to one system parameter. The observations are taken sequentially; but, as opposed to the gradient method, the observation may be located anywhere on the parameter interval. A sequence of estimates of the location of the curve maximum is generated. The location of the next observation may be interpreted as the location of the most likely competitor (with the current best estimate) for the location of the curve maximum. A Brownian motion stochastic process is selected as a model for the unknown function, and the observations are interpreted with respect to the model. The model gives the results a simple intuitive interpretation and allows the use of simple but efficient sampling procedures. The resulting process possesses some powerful convergence properties in the presence of noise; it is nonparametric and, despite its generality, is efficient in the use of observations. The approach seems quite promising as a solution to many of the problems of experimental system optimization.},
+    issn = {0021-9223},
+    doi = {10.1115/1.3653121},
+    url = {https://doi.org/10.1115/1.3653121},
+    eprint = {https://asmedigitalcollection.asme.org/fluidsengineering/article-pdf/86/1/97/5763745/97_1.pdf},
+}
+
+@inproceedings{646296.687872,
+author = {Mockus, Jonas},
+title = {On Bayesian Methods for Seeking the Extremum},
+year = {1974},
+isbn = {3540071652},
+publisher = {Springer-Verlag},
+address = {Berlin, Heidelberg},
+booktitle = {Proceedings of the IFIP Technical Conference},
+pages = {400–404},
+numpages = {5}
+}
+
+@inproceedings{NEURIPS2020_b19aa25f,
+ author = {Moss, Henry and Leslie, David and Beck, Daniel and Gonz\'{a}lez, Javier and Rayson, Paul},
+ booktitle = {Advances in Neural Information Processing Systems},
+ editor = {H. Larochelle and M. Ranzato and R. Hadsell and M.F. Balcan and H. Lin},
+ pages = {15476--15486},
+ publisher = {Curran Associates, Inc.},
+ title = {BOSS: Bayesian Optimization over String Spaces},
+ url = {https://proceedings.neurips.cc/paper_files/paper/2020/file/b19aa25ff58940d974234b48391b9549-Paper.pdf},
+ volume = {33},
+ year = {2020}
+}
+
+@InProceedings{pmlr-v80-baptista18a,
+  title = 	 {{B}ayesian Optimization of Combinatorial Structures},
+  author =       {Baptista, Ricardo and Poloczek, Matthias},
+  booktitle = 	 {Proceedings of the 35th International Conference on Machine Learning},
+  pages = 	 {462--471},
+  year = 	 {2018},
+  editor = 	 {Dy, Jennifer and Krause, Andreas},
+  volume = 	 {80},
+  series = 	 {Proceedings of Machine Learning Research},
+  month = 	 {10--15 Jul},
+  publisher =    {PMLR},
+  pdf = 	 {http://proceedings.mlr.press/v80/baptista18a/baptista18a.pdf},
+  url = 	 {https://proceedings.mlr.press/v80/baptista18a.html},
+  abstract = 	 {The optimization of expensive-to-evaluate black-box functions over combinatorial structures is an ubiquitous task in machine learning, engineering and the natural sciences. The combinatorial explosion of the search space and costly evaluations pose challenges for current techniques in discrete optimization and machine learning, and critically require new algorithmic ideas. This article proposes, to the best of our knowledge, the first algorithm to overcome these challenges, based on an adaptive, scalable model that identifies useful combinatorial structure even when data is scarce. Our acquisition function pioneers the use of semidefinite programming to achieve efficiency and scalability. Experimental evaluations demonstrate that this algorithm consistently outperforms other methods from combinatorial and Bayesian optimization.}
+}
+
+@article{doi:10.1126/science.220.4598.671,
+author = {S. Kirkpatrick  and C. D. Gelatt  and M. P. Vecchi },
+title = {Optimization by Simulated Annealing},
+journal = {Science},
+volume = {220},
+number = {4598},
+pages = {671-680},
+year = {1983},
+doi = {10.1126/science.220.4598.671},
+URL = {https://www.science.org/doi/abs/10.1126/science.220.4598.671},
+eprint = {https://www.science.org/doi/pdf/10.1126/science.220.4598.671},
+abstract = {There is a deep and useful connection between statistical mechanics (the behavior of systems with many degrees of freedom in thermal equilibrium at a finite temperature) and multivariate or combinatorial optimization (finding the minimum of a given function depending on many parameters). A detailed analogy with annealing in solids provides a framework for optimization of the properties of very large and complex systems. This connection to statistical mechanics exposes new information and provides an unfamiliar perspective on traditional optimization problems and methods.}}
+
+@article{eriksson2019scalable,
+  title={Scalable global optimization via local Bayesian optimization},
+  author={Eriksson, David and Pearce, Michael and Gardner, Jacob and Turner, Ryan D and Poloczek, Matthias},
+  journal={Advances in neural information processing systems},
+  volume={32},
+  year={2019}
+}

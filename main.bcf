@@ -3085,7 +3085,16 @@
     <bcf:citekey order="9" intorder="1">pmlr-v206-deshwal23a</bcf:citekey>
     <bcf:citekey order="10" intorder="1">pmlr-v206-deshwal23a</bcf:citekey>
     <bcf:citekey order="11" intorder="1">pmlr-v119-ru20a</bcf:citekey>
-    <bcf:citekey order="12" intorder="1" nocite="1">*</bcf:citekey>
+    <bcf:citekey order="12" intorder="1">10.1115/1.3653121</bcf:citekey>
+    <bcf:citekey order="13" intorder="1">3104322.3104451</bcf:citekey>
+    <bcf:citekey order="14" intorder="1">646296.687872</bcf:citekey>
+    <bcf:citekey order="14" intorder="2">jones1998efficient</bcf:citekey>
+    <bcf:citekey order="15" intorder="1">NEURIPS2020_b19aa25f</bcf:citekey>
+    <bcf:citekey order="16" intorder="1">doi:10.1126/science.220.4598.671</bcf:citekey>
+    <bcf:citekey order="16" intorder="2">pmlr-v80-baptista18a</bcf:citekey>
+    <bcf:citekey order="17" intorder="1">eriksson2019scalable</bcf:citekey>
+    <bcf:citekey order="18" intorder="1">pmlr-v139-wan21b</bcf:citekey>
+    <bcf:citekey order="19" intorder="1" nocite="1">*</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="none">

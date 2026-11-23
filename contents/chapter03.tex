@@ -4,269 +4,85 @@
 
 \section{TabPFN as the Surrogate}
 
+This section describes how TabPFN is configured and used as the surrogate in \Cref{alg:bo}.
+
+\textbf{Model.} The surrogate is the open-weight TabPFN-3.5 checkpoint, loaded through the tabpfn package v10.2.0. The model is used for regression with its default settings, including an ensemble of eight estimators that operate on distinct permutations of the data, and no setting is tuned for individual problems. %The variants TabPFN-3.5-Plus and TabPFN-3.5-Thinking are available only through an API and are not used.
+
+\textbf{Inputs.} The surrogate receives the observations $\mathcal{D}_n$ and, as queries, candidate points $\boldsymbol{x} = (\boldsymbol{x}_c, \boldsymbol{x}_d)$. Continuous variables are passed as numerical features. TabPFN-3.5 standardizes numerical values with training statistics internally and does not rely on further feature transformations, so no other preprocessing is applied. Categorical variables are declared as categorical features. Otherwise they may be treated as numerical, in which case the integer codes of the levels would imply an order that does not exist. The GP surrogates receive the same observations, with the categorical variables handled by the kernels of \Cref{subsec:gaussian-process}.
+
+\textbf{Use within one iteration.} TabPFN involves no task-specific training. At iteration $n$, the observations $\mathcal{D}_n$ serve as the context, and a forward pass returns the predictive distribution at each query point. No network parameters are updated and nothing is stored between iterations. After a new observation is added, the predictions are recomputed with the enlarged context. This replaces the hyperparameter estimation that a GP requires at every iteration. Within one iteration, the acquisition optimizer scores many candidate points against the same context. 
+
+\textbf{Output.} For each query point, the surrogate returns probabilities $p_k(\boldsymbol{x})$, $k = 0, \dots, K-1$, over $K$ bins with borders $b_0 < b_1 < \dots < b_K$. The bins are not of equal width. The density is constant within each interior bin, and the two outer bins are half-normal tails, so that the distribution has support on the whole real line. The predictions of the estimators are combined into a single distribution. As stated in \Cref{subsec:tabular-foundation-models}, the distribution refers to the noisy observation $y$ and is marginal for each query point.
+
 \section{Expected Improvement from the Predictive Distribution}
+
+Expected improvement is the acquisition function for all BO methods compared in this thesis. For a GP it is given by the closed form \eqref{eq:ei-closed-form}. For TabPFN it is computed from the bin probabilities, as introduced in \Cref{subsec:expected-improvement} and illustrated in~\Cref{fig:ei-compare}. %This section states the computation completely, together with the approximation it involves.
+
+Definition \eqref{eq:ei-definition} takes the expectation over the posterior of $f(\boldsymbol{x})$, whereas TabPFN returns a predictive distribution for $y$. This distribution is used in place of the posterior. When evaluations are noiseless, $y = f(\boldsymbol{x})$ and the substitution is exact. When they are noisy, the predictive distribution is wider than the posterior of $f(\boldsymbol{x})$ by the observation noise, so the improvement that uncertain points may offer is overestimated.
 
 \section{Acquisition Optimization and Trust Region}
 
-\begin{figure}[t]
-  \centering
-  \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[
-      item/.style={draw=#1, fill=#1!15, rounded corners=2pt, minimum height=7mm,
-                   minimum width=34mm, align=center, font=\small},
-      slot/.style={draw=#1, rounded corners=4pt, inner sep=3mm, line width=0.8pt},
-      head/.style={font=\small\bfseries},
-      arr/.style={-{Stealth[length=2.5mm]}, thick},
-      lab/.style={font=\scriptsize, above, inner sep=2pt}
-    ]
-    % Surrogate column
-    \node[item=surcol] (s1) at (0,-1)   {TabPFN};
-    \node[item=surcol] (s2) at (0,-1.9) {GP (overlap)};
-    \node[item=surcol] (s3) at (0,-2.8) {GP (trans.)};
-    \node[item=surcol] (s4) at (0,-3.7) {GP (HED)};
-    \node[slot=surcol, fit=(s1)(s2)(s3)(s4)] (S) {};
-    \node[head, above=1mm of S] {Surrogate model};
+\textbf{Optimizer.}
 
-    % Acquisition column (invisible pads give the frame the same height as the others)
-    \node[minimum width=34mm, minimum height=7mm] (ap1) at (5.5,-1)   {};
-    \node[minimum width=34mm, minimum height=7mm] (ap2) at (5.5,-3.7) {};
-    \node[item=acqcol] (a1) at (5.5,-1.45) {EI};
-    \node[item=acqcol] (a2) at (5.5,-2.35) {PI};
-    \node[item=acqcol] (a3) at (5.5,-3.25) {LCB};
-    \node[slot=acqcol, fit=(ap1)(ap2)] (A) {};
-    \node[head, above=1mm of A] {Acquisition function};
+\textit{Genetic algorithm.} The algorithm uses a population of 100 candidates and spends 500 acquisition evaluations per iteration, which corresponds to five generations. Parents are selected by tournament, and offspring are produced by the crossover and mutation operators of the mixed-variable genetic algorithm of the pymoo library (Blank and Deb, 2020). The initial population is drawn from the trust region.
 
-    % Optimizer column
-    \node[item=optcol] (o1) at (5.5*2,-1)   {Genetic algorithm};
-    \node[item=optcol] (o2) at (5.5*2,-1.9) {Simulated annealing};
-    \node[item=optcol] (o3) at (5.5*2,-2.8) {Hill climbing};
-    \node[item=optcol] (o4) at (5.5*2,-3.7) {Bandit};
-    \node[slot=optcol, fit=(o1)(o2)(o3)(o4)] (O) {};
-    \node[head, above=1mm of O] {Acquisition optimizer};
+\textit{Simulated annealing.} The algorithm is run from three starting points with 100 steps each. A neighbor is obtained by changing the level of one categorical variable and adding Gaussian noise with standard deviation 0.1 to the continuous variables, which are scaled to the unit interval. The temperature is multiplied by 0.8 at each step, and its initial value is set from the range of the observed objective values.
 
-    % Interfaces between components
-    \draw[arr] (S.east) -- (A.west)
-        node[lab, midway] {};
-    \draw[arr] (A.east) -- (O.west)
-        node[lab, midway] {};
+The point returned by the optimizer is the one with the highest acquisition value among the points visited during the search that have not been evaluated before. If the search visits no such point, a point is drawn at random from the trust region.
 
-    % Trust region
-    \node[item=trcol, minimum width=40mm, below=6mm of O] (tr) {Trust region};
-    \draw[arr] (tr.north) -- (O.south);
-  \end{tikzpicture}}
-  \caption{Modular components of BO. Each frame is a component whose options can be exchanged. The interfaces between components are the predictive distribution of the surrogate and the acquisition function, so in principle any option in one frame can be combined with the options in the others. The trust region restricts the search of the acquisition optimizer.}
-  \label{fig:modular}
-\end{figure}
+\textbf{Trust region.} The trust region of \Cref{subsec:acquisition-optimization-mixed-spaces} combines a Hamming distance bound on the categorical variables with a hyperrectangle on the continuous variables, and is centered at the best observation. The initial radii are 40, and the region is expanded and shrunk after 40 consecutive successes and failures, respectively. The same settings are used for all surrogates.
 
-\begin{figure}[t]
-  \centering
-  \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[
-      font=\small,
-      node distance=13mm,
-      mod/.style={draw=#1, fill=#1!15, rounded corners=3pt, thick,
-                  minimum width=33mm, minimum height=15mm, align=center},
-      data/.style={draw=black!60, fill=black!5, rounded corners=3pt, thick,
-                   minimum width=33mm, minimum height=15mm, align=center},
-      arr/.style={-{Stealth[length=2.5mm]}, thick},
-      lab/.style={font=\scriptsize, inner sep=2pt, align=center}
-    ]
-    % Row of stages
-    \node[data] (in) {\textbf{Inputs}\\ $\mathcal{D}_n$, candidate $\boldsymbol{x}$};
-    \node[mod=surcol, right=of in] (pre)
-        {\textbf{Preprocessing}\\ scale continuous,\\ declare categorical};
-    \node[mod=surcol, right=of pre, minimum width=42mm] (net)
-        {\textbf{TabPFN forward pass}\\ context: $\mathcal{D}_n$\\ query: $\boldsymbol{x}$};
-    \node[mod=surcol, right=of net] (ens)
-        {\textbf{Ensemble}\\ average over\\ estimators};
-    \node[mod=surcol, right=of ens] (bins)
-        {\textbf{Predictive distribution}\\ bin probabilities\\ $p_k(\boldsymbol{x})$};
-    \node[mod=acqcol, right=of bins] (ei)
-        {\textbf{Expected improvement}\\ $\alpha_{\mathrm{EI}}(\boldsymbol{x})$ from $p_k$, $y_n^*$};
+\textbf{Budget.} The number of acquisition evaluations per iteration is the same for every surrogate. The cost of one evaluation differs. For TabPFN, each evaluation requires a forward pass of the network, whereas for a GP it requires the posterior at the candidate points from a model fitted once per iteration. %The wall-clock time per iteration therefore differs between surrogates and is reported in Chapter 4 alongside the performance with respect to the number of evaluations of $f$.
 
-    \foreach \a/\b in {in/pre, pre/net, net/ens, ens/bins, bins/ei}
-      \draw[arr] (\a) -- (\b);
+\section{Implementation}
 
-    % To optimizer and back
-    \node[mod=optcol, below=14mm of ei] (opt)
-        {\textbf{Acquisition optimizer}\\ proposes new $\boldsymbol{x}$};
-    \draw[arr] (ei) -- (opt) node[lab, midway, right] {$\alpha(\boldsymbol{x})$};
-    \draw[arr] (opt.west) -| ($(in.south)+(0,-9mm)$) -- (in.south)
-        node[lab, pos=0.15, below] {candidate $\boldsymbol{x}$ \\ (one forward pass per evaluation)};
+\textbf{Library.} The method is implemented on top of MCBO \citep{NEURIPS2023_dbc4b67c}, an open-source library in which surrogate models, acquisition functions, acquisition optimizers, and trust regions are separate components that can be combined freely. TabPFN is added as a new surrogate by implementing the model interface of the library.
 
-    % Pretrained weights
-    \node[draw=black!40, dashed, rounded corners=3pt, minimum width=42mm,
-          minimum height=9mm, font=\scriptsize, text=black!60, above=9mm of net]
-          (w) {pretrained weights (fixed)};
-    \draw[arr, dashed, draw=black!40] (w) -- (net);
-  \end{tikzpicture}}
-  \caption{Computation of the acquisition value with TabPFN within one BO iteration. The observations serve as context and a candidate point as the query of a single forward pass, and the predictions of several estimators are averaged into a distribution over fixed bins, from which expected improvement is computed. The acquisition optimizer evaluates this pipeline once for each candidate point, and no parameters of TabPFN are updated.}
-  \label{fig:tabpfn-pipeline}
-\end{figure}
+\textbf{License.} The code of the tabpfn package is released under the Apache License 2.0. The weights of TabPFN-3.5 are released under the TabPFN-3.5 License v1.0, which permits academic use, research, and evaluation and excludes commercial and production use. This thesis uses the weights for research only.
 
-\begin{figure}[t]
-  \centering
-  \begin{tikzpicture}[font=\small]
-    % bins
-    \foreach \h [count=\i from 0] in {0.35,0.8,1.5,2.2,1.9,1.1,0.5,0.2} {
-      \ifnum\i<4
-        \fill[acqcol!55, draw=black!70] (\i*0.8,0) rectangle (\i*0.8+0.8,\h);
-      \else
-        \fill[surcol!25, draw=black!70] (\i*0.8,0) rectangle (\i*0.8+0.8,\h);
-      \fi
-    }
-    \draw[thick, -{Stealth}] (-0.2,0) -- (6.9,0) node[right] {$y$};
-    \draw[thick, dashed] (3.2,-0.15) -- (3.2,2.7) node[above] {$y_n^*$};
-    \node[font=\scriptsize] at (1.6,-0.55) {bins with improvement};
-    \node[font=\scriptsize] at (4.8,-0.55) {bins without improvement};
-    \node[font=\scriptsize, above] at (0.4,0.35) {$p_1$};
-    \node[font=\scriptsize, above] at (1.2,0.8) {$p_2$};
-    \node[font=\scriptsize, above] at (2.0,1.5) {$p_3$};
-    \node[font=\scriptsize, above] at (2.8,2.2) {$p_4$};
-  \end{tikzpicture}
-  \caption{Predictive distribution of TabPFN over fixed bins at a candidate point. The expected improvement is the sum, over the bins below the best observation $y_n^*$ (orange), of the bin probability $p_k$ multiplied by the expected improvement within the bin.}
-  \label{fig:ei-bins}
-\end{figure}
+% \begin{figure}[t]
+%   \centering
+%   \resizebox{\textwidth}{!}{%
+%   \begin{tikzpicture}[
+%       font=\small,
+%       node distance=14mm and 14mm,
+%       mod/.style={draw=#1, fill=#1!15, rounded corners=3pt, thick,
+%                   minimum width=30mm, minimum height=12mm, align=center},
+%       data/.style={draw=black!60, fill=black!5, rounded corners=3pt, thick,
+%                    minimum width=30mm, minimum height=12mm, align=center},
+%       role/.style={font=\small\bfseries, inner sep=2pt},
+%       arr/.style={-{Stealth[length=2.5mm]}, thick},
+%       lab/.style={font=\scriptsize, inner sep=2pt}
+%     ]
+%     % Top row
+%     \node[data] (init) {Initial design\\ $\boldsymbol{x}_1,\dots,\boldsymbol{x}_{n_0}$};
+%     \node[data, right=of init] (data) {Observations\\ $\mathcal{D}_n$};
+%     \node[mod=surcol, right=of data] (sur) {\textbf{TabPFN}};
+%     \node[mod=acqcol, right=of sur] (acq) {\textbf{EI}};
+%     \node[role, above=1mm of sur] {Surrogate model};
+%     \node[role, above=1mm of acq] {Acquisition function};
 
-\begin{figure}[t]
-  \centering
-  \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[
-      font=\small,
-      node distance=12mm and 16mm,
-      mod/.style={draw=#1, fill=#1!15, rounded corners=3pt, thick,
-                  minimum width=36mm, minimum height=13mm, align=center},
-      data/.style={draw=black!60, fill=black!5, rounded corners=3pt, thick,
-                   minimum width=36mm, minimum height=13mm, align=center},
-      arr/.style={-{Stealth[length=2.5mm]}, thick},
-      lab/.style={font=\scriptsize, inner sep=2pt}
-    ]
-    % Top row
-    \node[data] (init) {\textbf{Initial design}\\ $\boldsymbol{x}_1,\dots,\boldsymbol{x}_{n_0}$};
-    \node[data, right=of init] (data) {\textbf{Observations}\\ $\mathcal{D}_n$};
-    \node[mod=surcol, right=of data] (sur)
-        {\textbf{Surrogate model}\\ $p(y \mid \boldsymbol{x}, \mathcal{D}_n)$};
-    \node[mod=acqcol, right=of sur] (acq)
-        {\textbf{Acquisition function}\\ $\alpha(\boldsymbol{x}; \mathcal{D}_n)$};
+%     % Bottom row
+%     \node[data, below=of data] (obj)
+%         {Objective\\ $y_{n+1}=f(\boldsymbol{x}_{n+1})+\epsilon$};
+%     \node[mod=optcol, below=of acq] (opt) {\textbf{Local search}};
+%     \node[mod=trcol, right=of opt] (tr) {\textbf{Trust region}};
+%     \node[role, below=1mm of opt] {Acquisition optimizer};
+%     %\node[role, below=1mm of tr] {Trust region};
 
-    % Bottom row
-    \node[mod=optcol, below=of acq] (opt)
-        {\textbf{Acquisition optimizer}\\ $\boldsymbol{x}_{n+1}=\arg\max_{\boldsymbol{x}}\alpha$};
-    \node[mod=trcol, left=of opt] (tr) {\textbf{Trust region}\\ restricts the search};
-    \node[data, below=of data] (obj)
-        {\textbf{Objective}\\ $y_{n+1}=f(\boldsymbol{x}_{n+1})+\epsilon$};
-
-    % Arrows
-    \draw[arr] (init) -- (data);
-    \draw[arr] (data) -- (sur);
-    \draw[arr] (sur) -- (acq);
-    \draw[arr] (acq) -- (opt);
-    \draw[arr] (tr) -- (opt);
-    \draw[arr] (opt.south) -- ++(0,-8mm) -| (obj.south)
-        node[lab, pos=0.25, below] {$\boldsymbol{x}_{n+1}$};
-    \draw[arr] (obj.north) -- (data.south)
-        node[lab, midway, right] {$(\boldsymbol{x}_{n+1}, y_{n+1})$};
-  \end{tikzpicture}}
-  \caption{The BO loop. The surrogate, the acquisition function, and the acquisition optimizer are modular components, and the trust region restricts the search of the optimizer. The initial design is evaluated on $f$ to form the first observations.}
-  \label{fig:bo-loop}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[
-      font=\small,
-      node distance=22mm,
-      blk/.style={draw=#1, fill=#1!15, rounded corners=3pt, thick,
-                  minimum width=36mm, minimum height=14mm, align=center},
-      dat/.style={draw=black!60, fill=black!5, rounded corners=3pt, thick,
-                  minimum width=36mm, minimum height=11mm, align=center},
-      arr/.style={-{Stealth[length=2.5mm]}, thick},
-      lab/.style={font=\scriptsize, align=center, inner sep=2pt}
-    ]
-    % Inputs
-    \node[dat] (D) at (0,0.9)  {Observations\\ $\mathcal{D}_n$};
-    \node[dat] (X) at (0,-0.9) {Candidate\\ $\boldsymbol{x}$};
-
-    % Predictive distribution
-    \node[blk=surcol] (P) at (7.5,0)
-        {Predictive distribution\\ $p(y \mid \boldsymbol{x}, \mathcal{D}_n)$};
-
-    % Acquisition value
-    \node[blk=acqcol] (A) at (15,0)
-        {Acquisition value\\ $\alpha(\boldsymbol{x}; \mathcal{D}_n)$};
-
-    % Optimizer
-    \node[blk=optcol] (O) at (22.5,0) {Acquisition\\ optimizer};
-
-    % Merge inputs
-    \coordinate (m) at (2.7,0);
-    \draw[thick] (D.east) -| (m);
-    \draw[thick] (X.east) -| (m);
-    \draw[arr] (m) -- (P.west)
-        node[lab, midway, above] {forward pass\\ (TabPFN)};
-
-    % Pretrained weights
-    \node[draw=black!40, dashed, rounded corners=3pt, font=\scriptsize,
-          text=black!60, minimum height=7mm] (W) at (5.1,2.2) {pretrained weights (fixed)};
-    \draw[arr, dashed, black!40] (W.south) -- (5.1,0.35);
-
-    % P -> A -> O
-    \draw[arr] (P) -- (A)
-        node[lab, midway, above] {expected\\ improvement\\ with $y_n^*$};
-    \draw[arr] (A) -- (O);
-
-    % Feedback of new candidates
-    \draw[arr] (O.south) -- ++(0,-12mm) -| (X.south)
-        node[lab, pos=0.25, below] {new candidate $\boldsymbol{x}$ \\ (one forward pass per candidate)};
-  \end{tikzpicture}}
-  \caption{Computation of the acquisition value with TabPFN within one BO iteration. The observations serve as context and a candidate point as the query of a single forward pass of the pretrained network, which returns a predictive distribution over fixed bins. Expected improvement is computed from this distribution and the best observation $y_n^*$, and the acquisition optimizer proposes new candidate points until the search ends.}
-  \label{fig:tabpfn-pipeline}
-\end{figure}
-
-\begin{figure}[t]
-  \centering
-  \resizebox{\textwidth}{!}{%
-  \begin{tikzpicture}[
-      font=\small,
-      node distance=14mm and 14mm,
-      mod/.style={draw=#1, fill=#1!15, rounded corners=3pt, thick,
-                  minimum width=30mm, minimum height=12mm, align=center},
-      data/.style={draw=black!60, fill=black!5, rounded corners=3pt, thick,
-                   minimum width=30mm, minimum height=12mm, align=center},
-      role/.style={font=\small\bfseries, inner sep=2pt},
-      arr/.style={-{Stealth[length=2.5mm]}, thick},
-      lab/.style={font=\scriptsize, inner sep=2pt}
-    ]
-    % Top row
-    \node[data] (init) {Initial design\\ $\boldsymbol{x}_1,\dots,\boldsymbol{x}_{n_0}$};
-    \node[data, right=of init] (data) {Observations\\ $\mathcal{D}_n$};
-    \node[mod=surcol, right=of data] (sur) {\textbf{TabPFN}};
-    \node[mod=acqcol, right=of sur] (acq) {\textbf{EI}};
-    \node[role, above=1mm of sur] {Surrogate model};
-    \node[role, above=1mm of acq] {Acquisition function};
-
-    % Bottom row
-    \node[data, below=of data] (obj)
-        {Objective\\ $y_{n+1}=f(\boldsymbol{x}_{n+1})+\epsilon$};
-    \node[mod=optcol, below=of acq] (opt) {\textbf{[GA / SA]}};
-    \node[mod=trcol, right=of opt] (tr) {\textbf{Hamming + box}};
-    \node[role, below=1mm of opt] {Acquisition optimizer};
-    \node[role, below=1mm of tr] {Trust region};
-
-    % Arrows
-    \draw[arr] (init) -- (data);
-    \draw[arr] (data) -- (sur);
-    \draw[arr] (sur) -- (acq)
-        node[lab, midway, above] {$p(y \mid \boldsymbol{x}, \mathcal{D}_n)$};
-    \draw[arr] (acq) -- (opt)
-        node[lab, midway, right] {$\alpha(\boldsymbol{x}; \mathcal{D}_n)$};
-    \draw[arr] (tr) -- (opt);
-    \draw[arr] (opt.west) -- (obj.east)
-        node[lab, midway, above] {$\boldsymbol{x}_{n+1}$};
-    \draw[arr] (obj.north) -- (data.south)
-        node[lab, midway, right] {$(\boldsymbol{x}_{n+1}, y_{n+1})$};
-  \end{tikzpicture}}
-  \caption{The BO loop used in this thesis. The role of each component is shown outside its box and the choice made in this thesis inside. The trust region restricts the search of the acquisition optimizer. The initial design is evaluated on $f$ to form the first observations.}
-  \label{fig:bo-loop-tabpfn}
-\end{figure}
+%     % Arrows
+%     \draw[arr] (init) -- (data);
+%     \draw[arr] (data) -- (sur);
+%     \draw[arr] (sur) -- (acq)
+%         node[lab, midway, above] {$p(y \mid \boldsymbol{x}, \mathcal{D}_n)$};
+%     \draw[arr] (acq) -- (opt)
+%         node[lab, midway, right] {$\alpha(\boldsymbol{x}; \mathcal{D}_n)$};
+%     \draw[arr] (tr) -- (opt);
+%     \draw[arr] (opt.west) -- (obj.east)
+%         node[lab, midway, above] {$\boldsymbol{x}_{n+1}$};
+%     \draw[arr] (obj.north) -- (data.south)
+%         node[lab, midway, right] {$(\boldsymbol{x}_{n+1}, y_{n+1})$};
+%   \end{tikzpicture}}
+%   \caption{The BO loop used in this thesis. The role of each component is shown outside its box and the choice made in this thesis inside. The trust region restricts the search of the acquisition optimizer. The initial design is evaluated on $f$ to form the first observations.}
+%   \label{fig:bo-loop-tabpfn}
+% \end{figure}

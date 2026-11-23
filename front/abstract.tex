@@ -12,18 +12,12 @@
 
 \begin{abstract}
 
-在這裡寫中文摘要。刪掉這段文字，換成論述重點、方法或程序、結果與討論及結論。
-
-\zhlipsum[1][name=trad]
+貝氏最佳化是針對評估成本高昂的黑盒函數所發展的高樣本效率最佳化策略，許多實際問題的搜尋空間同時包含連續與類別變數。高斯過程是標準的代理模型，但在混合空間中，它需要以核函數指定類別水準之間的相似度，且核函數的超參數必須從少量觀測中估計。表格基礎模型提供了不同的途徑：它在合成資料集上預訓練，可以直接接受類別特徵，並且不需針對任務另行訓練即可輸出預測分佈。本論文研究表格基礎模型作為混合連續與類別變數空間貝氏最佳化之代理模型，以 TabPFN-3.5 為對象，並與搭配專為類別輸入設計之核函數的高斯過程代理模型比較。方法在合成基準函數上評估，其中類別變數個數、水準數，以及類別與連續變數之間交互作用的強度皆有變化，並在真實任務上評估。
 
 \end{abstract}
 
 \begin{abstract*}
 
-Write the English abstract here. Replace this paragraph with the problem, the
-method, the results, and the conclusion.
-
-\setlipsum{language=english}
-\lipsum[1]
+Bayesian optimization is a sample-efficient strategy for optimizing expensive black-box functions, and many practical problems have a search space that mixes continuous and categorical variables. Gaussian processes are the standard surrogate model, but in a mixed space they require a kernel that specifies the similarity between categorical levels, and its hyperparameters must be estimated from few observations. Tabular foundation models offer a different route. They are pretrained on synthetic datasets, accept categorical features directly, and return a predictive distribution without task-specific training. This thesis studies tabular foundation models as surrogates for Bayesian optimization in mixed continuous and categorical spaces, using TabPFN-3.5 and comparing it with Gaussian process surrogates that use kernels designed for categorical inputs. The methods are evaluated on synthetic benchmark functions with varying numbers of categorical variables, numbers of levels, and strengths of interaction between categorical and continuous variables, and on real tasks.
 
 \end{abstract*}

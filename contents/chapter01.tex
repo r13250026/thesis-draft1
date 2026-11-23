@@ -11,11 +11,11 @@
 
 \section{Background and Motivation}
 
-Many problems in science and engineering require optimizing a function that can only be evaluated by running an expensive procedure. Examples include selecting the configuration of a machine learning model, whose quality is known only after the model has been trained, and choosing the composition and processing conditions of a material, whose properties are known only after an experiment has been carried out. Such functions are black boxes: they have no known analytic form, their derivatives are unavailable, and the evaluation budget is limited to tens or hundreds of queries. Bayesian optimization (BO) is a well-established strategy for this setting (Shahriari et al., 2016; Frazier, 2018). It builds a probabilistic surrogate model of the objective from the evaluations collected so far and uses it to decide where to evaluate next.
+Many problems in science and engineering require optimizing a function that can only be evaluated by running an expensive procedure. Examples include selecting the configuration of a machine learning model, whose quality is known only after the model has been trained \citep{pmlr-v54-klein17a, WU201926}, and choosing the composition and processing conditions of a material, whose properties are known only after an experiment has been carried out \citep{10.1039/c9sc04026a, 10.1039/d2nr07147a}. Such functions are black boxes: they have no known analytic form, their derivatives are unavailable, and the evaluation budget is limited to tens or hundreds of queries. Bayesian optimization (BO) is a well-established strategy for this setting \citep{7352306, frazier2018tutorial}. It builds a probabilistic surrogate model of the objective from the evaluations collected so far and uses it to decide where to evaluate next.
 
-In many of these problems, the search space combines continuous and categorical variables. The configuration of a machine learning model includes continuous variables such as the learning rate, together with categorical choices such as the type of optimizer or the activation function. The design of a material may combine continuous quantities such as temperature or concentration with the choice of a constituent from a finite list. Such mixed search spaces are the setting of this thesis.
+In many of these problems, the search space combines continuous and categorical variables. The configuration of a machine learning model includes continuous variables such as the learning rate, together with categorical choices such as the type of optimizer or the activation function \citep{pmlr-v119-ru20a}. The design of a material may combine continuous quantities such as temperature or concentration with the choice of a constituent from a finite list \citep{zhang2020bayesian}. Such mixed search spaces are the setting of this thesis.
 
-The Gaussian process (GP) is the standard surrogate in BO (Rasmussen and Williams, 2006). Its extension to categorical inputs requires a kernel that specifies how similar two configurations are, and a family of kernels and methods has been developed for this purpose (Ru et al., 2020; Wan et al., 2021; Deshwal et al., 2023). Recently, tabular foundation models (TFMs) such as TabPFN (Hollmann et al., 2023, 2025) have offered a different route. A TFM is pretrained on a large collection of synthetic datasets and then predicts on a new dataset in a single forward pass, without task-specific training, while accepting numerical and categorical features directly. TabPFN has already been used as a surrogate in BO for continuous problems (Yu et al., 2025; Rogers and Ponnada, 2026). Whether it is a good surrogate in mixed spaces has not been examined systematically.
+The Gaussian process (GP) is the standard surrogate in BO  \citep{rasmussen2006gaussian}. Its extension to categorical inputs requires a kernel that specifies how similar two configurations are, and a family of kernels and methods has been developed for this purpose \citep{pmlr-v119-ru20a, pmlr-v139-wan21b, pmlr-v206-deshwal23a}. Recently, tabular foundation models (TFMs) such as TabPFN \citep{hollmann2022tabpfn, hollmann2025accurate} have offered a different route. A TFM is pretrained on a large collection of synthetic datasets and then predicts on a new dataset in a single forward pass, without task-specific training, while accepting numerical and categorical features directly. TabPFN has already been used as a surrogate in BO for continuous problems \citep{ICLR2026_b54bafb9, Rogers2026}. Whether it is a good surrogate in mixed spaces has not been examined.
 
 \section{Challenges of Mixed-Variable BO}
 
@@ -31,20 +31,20 @@ Finally, categorical variables complicate the use of the surrogate. A common way
 
 \section{Research Questions and Contributions}
 
-This thesis studies tabular foundation models as surrogates for BO in mixed search spaces. It replaces the GP surrogate with TabPFN while keeping the acquisition function, its optimizer, and the trust region fixed, so that differences in performance can be attributed to the surrogate. The thesis addresses two research questions.
+This thesis studies tabular foundation models as surrogates for BO in mixed search spaces. It replaces the GP surrogate with TabPFN. The thesis addresses two research questions.
 
-RQ1. Can TabPFN serve as an effective surrogate for BO in mixed search spaces, in comparison with GP surrogates using kernels designed for categorical inputs and with non-BO baselines?
+\textbf{RQ1.} Can TabPFN serve as an effective surrogate for BO in mixed search spaces, in comparison with GP surrogates using kernels designed for categorical inputs and with non-BO baselines?
 
-RQ2. How does the relative performance of TabPFN depend on the characteristics of the problem, namely the number of categorical variables, the number of levels per variable, the strength of the interaction between categorical and continuous variables%, and [the level of observation noise]?
+\textbf{RQ2.} How does the relative performance of TabPFN depend on the characteristics of the problem, namely the number of categorical variables, the number of levels per variable, the strength of the interaction between categorical and continuous variable?s%, and [the level of observation noise]?
 
 The contributions of this thesis are as follows.
 
 \begin{itemize}
     \item A systematic comparison of a tabular foundation model with Gaussian process surrogates and non-BO baselines on mixed-variable problems, on synthetic benchmark functions and real tasks.
     \item An analysis of how the comparison depends on the structure of the search space, which identifies the conditions under which each surrogate is preferable.
-    \item A description of how TabPFN is used within BO, including the computation of expected improvement from its predictive distribution over fixed bins, together with an implementation on top of the MCBO library.
+    %\item A description of how TabPFN is used within BO, including the computation of expected improvement from its predictive distribution over fixed bins, together with an implementation on top of the MCBO library.
 \end{itemize}
 
 \section{Thesis Organization}
 
-The remainder of this thesis is organized as follows. Chapter 2 reviews the background: Bayesian optimization, the surrogate models considered, the acquisition function and its optimization in mixed spaces, and related work. Chapter 3 describes how TabPFN is used as a surrogate within BO. Chapter 4 presents the experimental setup and results. Chapter 5 concludes and discusses limitations and future work.
+The remainder of this thesis is organized as follows. \Cref{chap:preliminaries} reviews the background: Bayesian optimization, the surrogate models considered, the acquisition function and its optimization in mixed spaces, and related work. \Cref{chap:methods} describes how TabPFN is used as a surrogate within BO. Chapter 4 presents the experimental setup and results. Chapter 5 concludes and discusses limitations and future work.

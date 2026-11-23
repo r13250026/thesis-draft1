@@ -14,7 +14,7 @@
   degree       = master,            % degree = master | doctor
   language     = english,           % language = chinese | english
   mathfont     = default,              % mathfont = default | termes | stix
-  watermark    = true,              % watermark = true | false   內頁浮水印
+  watermark    = false,              % watermark = true | false   內頁浮水印
   coverseal    = true,              % coverseal = true | false   封面校徽
   doi          = false,              % doi = true | false         頁尾 DOI
   grayprint    = false,             % grayprint = true | false   灰階列印本文頁
@@ -106,6 +106,9 @@
 \usepackage{graphicx}
 \usepackage{algorithm}
 \usepackage{algpseudocode}
+\usepackage{cleveref}
+\usepackage{hyperref}
+\usepackage{tabularx}
 
 \usepackage{lipsum}                     % 英文亂字
 \usepackage{zhlipsum}                   % 中文亂字
@@ -166,17 +169,28 @@
 \newcounter{bibcount}
 \AtEveryBibitem{\stepcounter{bibcount}}
 
+% \definecolor{mydarkblue}{rgb}{0,0.08,0.45}
+% \hypersetup{
+%     colorlinks=true,
+%     linkcolor=mydarkblue,
+%     citecolor=mydarkblue,
+%     urlcolor=mydarkblue
+% }
+\hypersetup{
+    colorlinks=false,
+}
+
 \begin{document}
 
 % 封面與口試審定
 % Cover and Verification Letter
-% \makecover                          % 論文封面（Cover）
+\makecover                          % 論文封面（Cover）
 % \makeverification                   % 口試委員審定書（Verification Letter）
 
 % 致謝與論文摘要
 % Acknowledgement and Abstract
 % \input{front/acknowledgement}       % 致謝（Acknowledgement）
-% \input{front/abstract}              % 摘要（Abstract）
+\input{front/abstract}              % 摘要（Abstract）
 
 % 生成目錄與符號列表
 % Contents of Tables and Denotation

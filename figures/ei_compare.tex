@@ -1,0 +1,66 @@
+\documentclass[border=6pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta}
+\definecolor{surcol}{RGB}{0,114,178}
+\definecolor{acqcol}{RGB}{230,159,0}
+
+\begin{document}
+\begin{tikzpicture}[font=\small, >=Stealth]
+
+  % ---------- (a) Gaussian process ----------
+  \begin{scope}
+    \fill[acqcol!40] (0,0) -- plot[domain=-3:-0.55, samples=60]
+        ({\x+3}, {2.2*exp(-(\x)^2/2)}) -- (2.45,0) -- cycle;
+    \draw[surcol, very thick] plot[domain=-3:3, samples=80]
+        ({\x+3}, {2.2*exp(-(\x)^2/2)});
+    \draw[-{Stealth}, thick] (-0.2,0) -- (6.3,0) node[right] {$f(\boldsymbol{x})$};
+    \draw[dashed, thick] (2.45,-0.1) -- (2.45,2.75) node[above] {$y_n^*$};
+    \draw[dotted, thick] (3,0) -- (3,2.2);
+    \node[font=\scriptsize, above] at (3.6,2.2) {$\mu_n(\boldsymbol{x})$};
+    \node[font=\bfseries] at (3,4.0) {(a) Gaussian process};
+    \node[font=\scriptsize, align=center] (la) at (0.8,1.4) {improvement\\ region};
+    \draw[->, thin] (la.south) -- (1.25,0.2);
+    \node[align=center] at (3,-1.6)
+      {$\alpha_{\mathrm{EI}}(\boldsymbol{x})=\sigma_n(\boldsymbol{x})\,\bigl[z\,\Phi(z)+\phi(z)\bigr]$,\quad
+       $z=\dfrac{y_n^*-\mu_n(\boldsymbol{x})}{\sigma_n(\boldsymbol{x})}$};
+    \node[font=\scriptsize, align=center, text=black!70] at (3,-2.7)
+      {closed form of $\mathbb{E}\bigl[\max(y_n^*-f(\boldsymbol{x}),0)\bigr]$};
+  \end{scope}
+
+  % ---------- (b) TabPFN ----------
+  \begin{scope}[xshift=8.5cm]
+    % bins fully below y*
+    \foreach \a/\b/\h in {1.0/1.7/0.35, 1.7/2.2/0.9}
+      \filldraw[fill=acqcol!40, draw=black!60] (\a,0) rectangle (\b,\h);
+    % bin that contains y* (partially shaded)
+    \filldraw[fill=surcol!20, draw=black!60] (2.2,0) rectangle (2.65,1.6);
+    \fill[acqcol!40] (2.2,0) rectangle (2.45,1.6);
+    \draw[black!60] (2.2,0) rectangle (2.65,1.6);
+    % bins above y*
+    \foreach \a/\b/\h in {2.65/3.1/2.1, 3.1/3.6/1.8, 3.6/4.3/0.9, 4.3/5.0/0.35}
+      \filldraw[fill=surcol!20, draw=black!60] (\a,0) rectangle (\b,\h);
+    % tails
+    \fill[acqcol!40] (1.0,0) -- plot[domain=0:1.0, samples=40]
+        ({1.0-\x}, {0.4*exp(-(\x)^2/0.5)}) -- (0,0) -- cycle;
+    \fill[surcol!20] (5.0,0) -- plot[domain=0:1.0, samples=40]
+        ({5.0+\x}, {0.4*exp(-(\x)^2/0.5)}) -- (6.0,0) -- cycle;
+    \draw[surcol, thick] plot[domain=0:1.0, samples=40]
+        ({1.0-\x}, {0.4*exp(-(\x)^2/0.5)});
+    \draw[surcol, thick] plot[domain=0:1.0, samples=40]
+        ({5.0+\x}, {0.4*exp(-(\x)^2/0.5)});
+
+    \draw[-{Stealth}, thick] (-0.2,0) -- (6.3,0) node[right] {$y$};
+    \draw[dashed, thick] (2.45,-0.1) -- (2.45,2.75) node[above] {$y_n^*$};
+    \node[font=\bfseries] at (3,4.0) {(b) TabPFN};
+    \node[font=\scriptsize, align=center] at (0.5,1.0) {half-normal\\ tail};
+    \node[font=\scriptsize, align=center] at (5.55,1.0) {half-normal\\ tail};
+    \node[font=\scriptsize, align=center, text=black!70] at (3,-0.55)
+      {bins of unequal width, constant density within interior bins};
+    \node[align=center] at (3,-1.6)
+      {$\alpha_{\mathrm{EI}}(\boldsymbol{x})=\displaystyle\sum_{k} p_k(\boldsymbol{x})\,e_k$};
+    \node[font=\scriptsize, align=center, text=black!70] at (3,-2.7)
+      {$p_k$: bin probability,\ $e_k$: expected improvement within bin $k$};
+  \end{scope}
+\end{tikzpicture}
+\end{document}

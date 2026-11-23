@@ -260,7 +260,7 @@ The next query point is the solution of the global problem in \eqref{eq:next-que
 
 \textit{Simulated annealing.} A single current point is maintained, and at each step a neighbor is proposed by changing the level of one categorical variable and perturbing the continuous variables. A neighbor that improves $\alpha$ is accepted, and a worse neighbor is accepted with probability $\exp(-\Delta / T)$, where $\Delta$ is the loss in acquisition value and $T$ is a temperature that decreases during the run. The search can therefore leave local maxima early on and becomes increasingly greedy later \citep{doi:10.1126/science.220.4598.671, pmlr-v80-baptista18a}.
 
-Other options combine a discrete search over the categorical part with gradient descent on the continuous part. Casmopolitan (Wan et al., 2021) alternates hill climbing and gradient descent, and CoCaBO (Ru et al., 2020) selects the categorical configuration with a multi-armed bandit. Both require the acquisition function to be differentiable with respect to the continuous variables. Zero-order methods, in contrast, can be paired with any surrogate.
+Other options combine a discrete search over the categorical part with gradient descent on the continuous part. Casmopolitan \citep{pmlr-v139-wan21b} alternates hill climbing and gradient descent, and CoCaBO \citep{pmlr-v119-ru20a} selects the categorical configuration with a multi-armed bandit. Both require the acquisition function to be differentiable with respect to the continuous variables. Zero-order methods, in contrast, can be paired with any surrogate.
 
 \textbf{Trust regions.} Applied to the whole search space, these optimizers face a difficulty that grows with dimensionality. The surrogate must be accurate over all of $\mathcal{X}$, yet it is fitted from few observations, and its predictions far from the data are unreliable. A trust region addresses this by restricting the acquisition search to a neighborhood of a center point, usually the best point found so far. The idea was developed for continuous BO \citep{eriksson2019scalable} and extended to mixed spaces by Casmopolitan \citep{pmlr-v139-wan21b}. With $\boldsymbol{x}^{\mathrm{TR}} = (\boldsymbol{x}_c^{\mathrm{TR}}, \boldsymbol{x}_d^{\mathrm{TR}})$ the center of the region, a trust region for a mixed space is
 
@@ -280,7 +280,7 @@ The size of the region is adapted during the run. It expands after consecutive i
 
 \section{Related Work}\label{sec:related-work}
 
-Existing work on mixed-variable BO can be organized by how it addresses the difficulties in Section 2.2. Most methods are combinations of a surrogate and an acquisition optimizer, so the discussion follows the same split between the two components used in Sections 2.3 and 2.4.
+%Existing work on mixed-variable BO can be organized by how it addresses the difficulties in Section 2.2. Most methods are combinations of a surrogate and an acquisition optimizer, so the discussion follows the same split between the two components used in Sections 2.3 and 2.4.
 
 \textbf{One-hot encoding.} A common approach is to convert each categorical variable into a one-hot vector and to apply a standard GP, as in the widely used packages Spearmint \citep{NIPS2012_05311655} and GPyOpt \citep{pmlr-v51-gonzalez16a}. This ignores that the objective is defined only on a small subset of the encoded space. It also increases the input dimension and makes the acquisition function harder to optimize, since the encoded points are far apart and the landscape contains many flat regions \citep{pmlr-v70-rana17a}.
 

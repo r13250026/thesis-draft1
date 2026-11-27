@@ -34,11 +34,11 @@ The point returned by the optimizer is the one with the highest acquisition valu
 
 \textbf{Budget.} The number of acquisition evaluations per iteration is the same for every surrogate. The cost of one evaluation differs. For TabPFN, each evaluation requires a forward pass of the network, whereas for a GP it requires the posterior at the candidate points from a model fitted once per iteration. %The wall-clock time per iteration therefore differs between surrogates and is reported in Chapter 4 alongside the performance with respect to the number of evaluations of $f$.
 
-\section{Implementation}
+% \section{Implementation}
 
-\textbf{Library.} The method is implemented on top of MCBO \citep{NEURIPS2023_dbc4b67c}, an open-source library in which surrogate models, acquisition functions, acquisition optimizers, and trust regions are separate components that can be combined freely. TabPFN is added as a new surrogate by implementing the model interface of the library.
+% \textbf{Library.} The method is implemented on top of MCBO \citep{NEURIPS2023_dbc4b67c}, an open-source library in which surrogate models, acquisition functions, acquisition optimizers, and trust regions are separate components that can be combined freely. TabPFN is added as a new surrogate by implementing the model interface of the library.
 
-\textbf{License.} The code of the tabpfn package is released under the Apache License 2.0. The weights of TabPFN-3.5 are released under the TabPFN-3.5 License v1.0, which permits academic use, research, and evaluation and excludes commercial and production use. This thesis uses the weights for research only.
+% \textbf{License.} The code of the tabpfn package is released under the Apache License 2.0. The weights of TabPFN-3.5 are released under the TabPFN-3.5 License v1.0, which permits academic use, research, and evaluation and excludes commercial and production use. This thesis uses the weights for research only.
 
 % \begin{figure}[t]
 %   \centering
@@ -86,3 +86,39 @@ The point returned by the optimizer is the one with the highest acquisition valu
 %   \caption{The BO loop used in this thesis. The role of each component is shown outside its box and the choice made in this thesis inside. The trust region restricts the search of the acquisition optimizer. The initial design is evaluated on $f$ to form the first observations.}
 %   \label{fig:bo-loop-tabpfn}
 % \end{figure}
+
+\section{Compared Methods}
+
+\textbf{Controlled comparison.} The BO methods are formed by combining a surrogate with an acquisition optimizer, as described in Chapter 3. Four surrogates are considered: TabPFN-3.5, and three Gaussian processes that share a Matérn-5/2 kernel on the continuous part and differ in the kernel on the categorical part, namely the overlap kernel (GP-O), the transformed overlap kernel (GP-TO), and the Hamming embedding via dictionary kernel (GP-HED). Each surrogate is combined with two acquisition optimizers, a genetic algorithm (GA) and simulated annealing (SA). Both use only values of the acquisition function, so they can be paired with every surrogate. The acquisition function is expected improvement, and the trust region is the same for all eight methods. Surrogates are compared within the same optimizer, so that differences can be attributed to the surrogate.
+
+\textbf{Reference methods.} Three published methods are run as reference points to the literature: CoCaBO, Casmopolitan, and BODi. In MCBO they correspond to a Gaussian process with the overlap kernel, the transformed overlap kernel, and the HED kernel, respectively, combined with an interleaved search that alternates a discrete search over the categorical variables with gradient descent on the continuous variables. Gradient descent requires the acquisition function to be differentiable with respect to the continuous variables. Because the optimizer of the reference methods differs from GA and SA, no conclusion about the effect of the surrogate is drawn from their comparison with TabPFN.
+
+\textbf{Non-BO reference.} Random search samples the search space without a model. It shows whether the use of a surrogate improves on model-free sampling.
+
+\begin{table}[htbp]
+  \centering
+  \caption{Methods compared. Conclusions about the surrogate are drawn only within the controlled group and within one optimizer.}
+  \label{tab:methods}
+  \begin{tabular}{llll}
+    \toprule
+    Group & Surrogate & Acquisition optimizer & Name \\
+    \midrule
+    \multirow{4}{*}{Controlled}
+      & TabPFN-3.5 & Genetic algorithm, Simulated annealing & TabPFN-GA, TabPFN-SA \\
+      & GP-O       & Genetic algorithm, Simulated annealing & GP(O)-GA, GP-(O)-SA     \\
+      & GP-TO      & Genetic algorithm, Simulated annealing & GP(TO)-GA, GP(TO)-SA   \\
+      & GP-HED     & Genetic algorithm, Simulated annealing & GP(HED)-GA, GP(HED)-SA \\
+    \midrule
+    \multirow{3}{*}{Reference}
+      & GP-O       & Bandit and gradient descent       & CoCaBO               \\
+      & GP-TO      & Hill climbing and gradient descent & Casmopolitan         \\
+      & GP-HED     & Hill climbing and gradient descent & BODi                 \\
+    \midrule
+    Non-BO & none & Random sampling                   & Random search        \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\section{Test Problems}
+
+\textbf{Standard test functions.} 21 functions from the Virtual Library of Simulation Experiments are converted into mixed problems. A function is converted by selecting $m$ of its variables, replacing each by a categorical variable with $K$ levels, and mapping the levels to $K$ values on a regular grid over the range of the replaced variable. Such a mapping imposes an order on the levels. To remove it, the assignment of levels to grid values is a random permutation that is drawn once for each problem, so that the levels are nominal. The global minimum of the converted problem is obtained by enumerating the $K^m$ categorical configurations and minimizing over the remaining continuous variables. The functions, the number of converted variables, and the number of levels are listed in Appendix.
